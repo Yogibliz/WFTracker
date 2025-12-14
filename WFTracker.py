@@ -44,6 +44,76 @@ warframe_parts = {}
 archwing_parts = {}
 weapon_parts = {}
 
+# Menu Options
+MENU_ITEMS = [
+    {
+        "label": "Print Duplicate Primes Parts",
+        "header": "----- Duplicate Prime Parts (mastered and unmastered) -----",
+        "func": "print_set_of_tuples_as_table",
+        "data": duplicate_prime_parts,
+    },
+    {
+        "label": "Print Prime Parts for Mastered",
+        "header": "----- Mastered Prime Parts -----",
+        "func": "print_set_of_tuples_as_table",
+        "data": mastered_prime_parts,
+    },
+    {
+        "label": "Print Weapon Prime Parts as Part of Set",
+        "header": "----- Prime Weapons Set Progress -----",
+        "func": "print_weapon_set_progress_as_table",
+        "data": weapon_parts,
+    },
+    {
+        "label": "Prime Warframe Prime Parts as Part of Set",
+        "header": "----- Prime Warframes Set Progress -----",
+        "func": "print_warframe_set_progress_as_table",
+        "data": warframe_parts,
+    },
+    {
+        "label": "Prime Archwing Prime Parts as Part of Set",
+        "header": "----- Prime Archwing Set Progress -----",
+        "func": "print_archwing_set_progress_as_table",
+        "data": archwing_parts,
+    },
+    {
+        "label": "Print Unmastered Warframes",
+        "header": "----- Unmastered Archwings & Warframes -----",
+        "func": "print_set_as_table",
+        "data": unmastered_warframes,
+    },
+    {
+        "label": "Print Unmastered Primary Weapons",
+        "header": "----- Unmastered Primary Weapons -----",
+        "func": "print_set_as_table",
+        "data": unmastered_primaries,
+    },
+    {
+        "label": "Print Unmastered Secondary Weapons",
+        "header": "----- Unmastered Secondary Weapons -----",
+        "func": "print_set_as_table",
+        "data": unmastered_secondaries,
+    },
+    {
+        "label": "Print Unmastered Melee Weapons",
+        "header": "----- Unmastered Melee Weapons -----",
+        "func": "print_set_as_table",
+        "data": unmastered_melees,
+    },
+    {
+        "label": "Print Unmastered Arch Weapons",
+        "header": "----- Unmastered Arch Weapons -----",
+        "func": "print_set_as_table",
+        "data": unmastered_arch_weapons,
+    },
+    {
+        "label": "Print Unmastered Amps",
+        "header": "----- Unmastered Amps -----",
+        "func": "print_set_as_table",
+        "data": unmastered_amps,
+    },
+]
+
 # ----------------------- Fetching from API:s -----------------------
 
 
@@ -102,7 +172,8 @@ def fetch_warframe_recipes():
             else:
                 item_name = archwing_name[result_type]
                 entry = {
-                    "name": item_name,
+                    # Remove <ARCHWING> tag from archwings.
+                    "name": re.sub(r"<ARCHWING>", "", item_name),
                     "blueprint": bp_tuple,
                     "harness": ("", 0),
                     "wings": ("", 0),
@@ -262,58 +333,39 @@ def clean_name(name_str):
 
 # Basic Main Menu
 def main_menu():
-    option = -1
-    while option not in range(0, 10):
-        os.system("cls" if os.name == "nt" else "clear")
-        print("1. Print Unmastered Warframes")
-        print("2. Print Unmastered Primary Weapons")
-        print("3. Print Unmastered Secondary Weapons")
-        print("4. Print Unmastered Melee Weapons")
-        print("5. Print Unmastered Arch Weapons")
-        print("6. Print Unmastered Amps")
-        print("7. Print Duplicate Primes Parts")
-        print("8. Print Prime Parts for Mastered")
-        print("9. Print Weapon Prime Parts as Part of Set")
-        print("0. Prime Warframe Prime Parts as Port of Set")
-        option = int(input("What do you want to do? [0-9]: "))
+    menu = PrettyTable(["Index", "Action"])
+    menu.align["Action"] = "l"
+    menu.title = "----- Main Menu -----"
 
-    print_selection(option)
+    for index, item in enumerate(MENU_ITEMS):
+        menu.add_row([index, item["label"]])
+
+    selected_option = -1
+    # Automatically calculate valid range based on list size
+    while selected_option not in range(len(MENU_ITEMS)):
+        os.system("cls" if os.name == "nt" else "clear")
+        print(menu)
+        try:
+            selected_option = int(input("What do you want to do?: "))
+        except ValueError:
+            continue
+
+    print_selection(selected_option)
 
 
 # Print the selected option in the main_menu
 def print_selection(index):
     os.system("cls" if os.name == "nt" else "clear")
-    match index:
-        case 1:
-            print("----- Unmastered Archwings & Warframes -----")
-            print_set_as_table(unmastered_warframes)
-        case 2:
-            print("----- Unmastered Primary Weapons -----")
-            print_set_as_table(unmastered_primaries)
-        case 3:
-            print("----- Unmastered Secondary Weapons -----")
-            print_set_as_table(unmastered_secondaries)
-        case 4:
-            print("----- Unmastered Melee Weapons -----")
-            print_set_as_table(unmastered_melees)
-        case 5:
-            print("----- Unmastered Arch Weapons -----")
-            print_set_as_table(unmastered_arch_weapons)
-        case 6:
-            print("----- Unmastered Amps -----")
-            print_set_as_table(unmastered_amps)
-        case 7:
-            print("----- Duplicate Prime Parts (mastered and unmastered) -----")
-            print_set_of_tuples_as_table(duplicate_prime_parts)
-        case 8:
-            print("----- Mastered Prime Parts -----")
-            print_set_of_tuples_as_table(mastered_prime_parts)
-        case 9:
-            print("----- Prime Weapons Set Progress -----")
-            print_weapon_set_progress_as_table(weapon_parts)
-        case 0:
-            print("----- Prime Warframes Set Progress -----")
-            print_warframe_set_progress_as_table(warframe_parts)
+
+    selection = MENU_ITEMS[index]
+
+    func_name = selection["func"]
+    if func_name in globals():
+        func_to_call = globals()[func_name]
+        func_to_call(selection["data"], selection["header"])
+    else:
+        print(f"Error: Function '{func_name}' not found.")
+
     go_back = ""
     while go_back != "y":
         go_back = input("Go back to menu or quit? (y/q): ").lower()
@@ -323,9 +375,13 @@ def print_selection(index):
 
 
 # Convert the set of tuples data into a printable table with item and count
-def print_set_of_tuples_as_table(input_set):
+def print_set_of_tuples_as_table(input_set, title):
     table = PrettyTable(["Item", "Count"])
-    for tup in sorted(input_set):
+    table.title = title
+    table.sortby = "Count"
+    table.reversesort = True
+
+    for tup in input_set:
         item = tup[0]
         count = tup[1]
         table.add_row([item, count])
@@ -333,21 +389,26 @@ def print_set_of_tuples_as_table(input_set):
 
 
 # Convert the set into a printable table
-def print_set_as_table(input_set):
+def print_set_as_table(input_set, title):
     table = PrettyTable(["Item"])
+    table.title = title
+
     for item in sorted(input_set):
         table.add_row([item])
     print(table)
 
 
 # For prime_warframe_sets.
-def print_warframe_set_progress_as_table(prime_warframe_set):
-    prime_warframe_table = PrettyTable(
+def print_warframe_set_progress_as_table(prime_warframe_set, title):
+    table = PrettyTable(
         ["Item", "Blueprint", "Neuroptics", "Chassis", "Systems", "Progress"]
     )
+    table.title = title
+    table.sortby = "Progress"
+    table.reversesort = True
 
     # Sort by name
-    for entry in sorted(prime_warframe_set.values(), key=lambda x: x["name"]):
+    for entry in prime_warframe_set.values():
         progress = (
             entry["blueprint"][1]
             + entry["neuroptics"][1]
@@ -363,15 +424,18 @@ def print_warframe_set_progress_as_table(prime_warframe_set):
             entry["systems"][1],
             f"{progress}/4",
         ]
-        prime_warframe_table.add_row(row)
-    print(prime_warframe_table)
+        table.add_row(row)
+    print(table)
 
 
 # For the prime_weapon_sets.
-def print_weapon_set_progress_as_table(prime_weapon_set):
-    prime_weapon_table = PrettyTable(["Item", "Parts", "Progress"])
+def print_weapon_set_progress_as_table(prime_weapon_set, title):
+    table = PrettyTable(["Item", "Parts", "Progress"])
+    table.title = title
+    table.sortby = "Progress"
+    table.reversesort = True
 
-    for entry in sorted(prime_weapon_set.values(), key=lambda x: x["name"]):
+    for entry in prime_weapon_set.values():
         parts_str_list = [f"Blueprint: {entry['blueprint'][1]}"]
         amount = 1
         progress = 0
@@ -385,22 +449,35 @@ def print_weapon_set_progress_as_table(prime_weapon_set):
         progress_str = f"Progress: {progress}/{amount}"
         formatted_parts = ", ".join(parts_str_list)
 
-        prime_weapon_table.add_row([entry["name"], formatted_parts, progress_str])
-    print(prime_weapon_table)
+        table.add_row([entry["name"], formatted_parts, progress_str])
+    print(table)
 
 
 # For archwing_sets
-def print_archwing_set_progress_as_table(archwing_set):
-    table = PrettyTable(["Item", "Blueprint", "Harness", "Wings", "Systems"])
-    table.align["Item"] = "l"
+def print_archwing_set_progress_as_table(archwing_set, title):
+    table = PrettyTable(
+        ["Item", "Blueprint", "Harness", "Wings", "Systems", "Progress"]
+    )
+    table.title = title
+    table.sortby = "Progress"
+    table.reversesort = True
 
-    for entry in sorted(archwing_set.values(), key=lambda x: x["name"]):
+    for entry in archwing_set.values():
+        part_keys = ["blueprint", "harness", "wings", "systems"]
+        owned = 0
+        for key in part_keys:
+            if entry[key][1] >= 1:
+                owned += 1
+
+        progress_str = f"{owned}/{len(part_keys)}"
+
         row = [
             entry["name"],
             entry["blueprint"][1],
             entry["harness"][1],
             entry["wings"][1],
             entry["systems"][1],
+            progress_str,
         ]
         table.add_row(row)
     print(table)
