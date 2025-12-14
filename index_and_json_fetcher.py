@@ -1,7 +1,5 @@
 import json
 import lzma
-import os
-import subprocess
 
 import requests
 
@@ -56,7 +54,7 @@ def save_json(data_text, local_name):
             f.write(data_text)
 
 
-def main():
+def get_warframe_json_data():
     try:
         # 1. Get the index
         index_text = download_index()
@@ -82,53 +80,5 @@ def main():
             except Exception as e:
                 print(f"Failed to fetch {filename}: {e}")
 
-        # 4. Run warframe-api-helper.exe and watch for success message
-        exe_path = os.path.join(OUTPUT_FOLDER, "warframe-api-helper.exe")
-        full_exe_path = os.path.abspath(exe_path)
-
-        if os.path.exists(full_exe_path):
-            # Popen starts the process without waiting for it to finish
-            process = subprocess.Popen(
-                [full_exe_path],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                bufsize=1,  # Line-buffered
-            )
-
-            # Make sure the process returns output.
-            if process.stdout is None:
-                raise RuntimeError("Failed to capture output: process.stdout is None")
-
-            try:
-                for line in process.stdout:
-                    text = line.strip()
-
-                    # Case 1: Success
-                    if "Saved to inventory.json" in text:
-                        process.terminate()
-                        break
-
-                    # Case 2: Failure (API error / Rate limit)
-                    elif "Request failed" in text:
-                        print("WARNING: API Helper failed (likely rate limited).")
-                        print("-> Try again in 5 minutes.")
-                        print("-> Continuing with existing files (if any)...")
-                        process.terminate()
-                        break
-
-            except Exception as e:
-                print(f"Error monitoring exe: {e}")
-                process.kill()
-
-            # Ensure the process is cleaned up before continuing
-            process.wait()
-        else:
-            print("warframe-api-helper.exe not found!")
-
     except Exception as e:
         print(f"CRITICAL ERROR: {e}")
-
-
-if __name__ == "__main__":
-    main()

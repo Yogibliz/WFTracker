@@ -6,6 +6,7 @@ import re
 from prettytable import PrettyTable
 
 import index_and_json_fetcher
+import inventory_fetcher
 
 # Warframe API data
 warframe_name = {}
@@ -560,7 +561,8 @@ if __name__ == "__main__":
 
     if not args.no_fetch:
         # Fetch and Filter everything
-        index_and_json_fetcher.main()
+        inventory_fetcher.fetch_and_save_inventory()
+        index_and_json_fetcher.get_warframe_json_data()
     fetch_inventory_data()
     fetch_warframes()
     fetch_weapons()
