@@ -3,6 +3,8 @@ import lzma
 
 import requests
 
+import json_fetcher
+
 INDEX_URL = "https://origin.warframe.com/PublicExport/index_en.txt.lzma"
 PUBLIC_EXPORT_BASE = "http://content.warframe.com/PublicExport/Manifest/"
 OUTPUT_FOLDER = "./"
@@ -54,7 +56,7 @@ def save_json(data_text, local_name):
             f.write(data_text)
 
 
-def get_warframe_json_data():
+def fetch_warframe_json_data():
     try:
         # 1. Get the index
         index_text = download_index()
@@ -79,6 +81,9 @@ def get_warframe_json_data():
                 save_json(raw_json_text, OUTPUT_FOLDER + output_name)
             except Exception as e:
                 print(f"Failed to fetch {filename}: {e}")
+
+        # 4. Fetch Warframe Inventory JSON data
+        json_fetcher.fetch_warframe_json_data()
 
     except Exception as e:
         print(f"CRITICAL ERROR: {e}")
