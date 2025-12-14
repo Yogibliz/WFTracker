@@ -5,7 +5,7 @@ import re
 
 from prettytable import PrettyTable
 
-import inventory_fetcher
+import json_fetcher
 
 # Warframe API data
 warframe_name = {}
@@ -208,7 +208,7 @@ def fetch_weapon_recipes():
                 weapon_parts[unique_name] = entry
 
 
-# Helper to fetch the inventory data.
+# Fetch the inventory data.
 def fetch_inventory_data():
     with open("inventory.json") as f:
         data = json.load(f)
@@ -229,6 +229,15 @@ def fetch_inventory_data():
                 continue
 
             warframe_inventory[item_type] = item.get("ItemCount", 0)
+
+
+# Fetch everything in correct order, helper for main
+def fetch_items():
+    fetch_inventory_data()
+    fetch_warframes()
+    fetch_weapons()
+    fetch_warframe_recipes()
+    fetch_weapon_recipes()
 
 
 # ----------------------- Formatting Helpers -----------------------
@@ -523,6 +532,7 @@ def filter_unmastered_weapons():
                 unmastered_others.add(name)
 
 
+# Filter everything in correct order, helper for main
 def filter_items():
     filter_duplicate_prime_parts()
     filter_mastered_and_owned_gear()
@@ -560,12 +570,8 @@ if __name__ == "__main__":
 
     if not args.no_fetch:
         # Fetch and Filter everything
-        inventory_fetcher.fetch_and_save_inventory()
-    fetch_inventory_data()
-    fetch_warframes()
-    fetch_weapons()
-    fetch_warframe_recipes()
-    fetch_weapon_recipes()
+        json_fetcher.fetch_warframe_json_data()
+    fetch_items()
     filter_items()
     main_menu()
 
