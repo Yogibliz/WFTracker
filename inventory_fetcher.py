@@ -7,7 +7,7 @@ import pymem.pattern
 import requests
 
 
-def get_nonce():
+def get_nonce_windows():
     # Open the Process
     try:
         pm = pymem.Pymem("Warframe.x64.exe")
@@ -76,9 +76,9 @@ def fetch_and_save_inventory():
     # 1. Construct the URL
     base_url = str("https://api.warframe.com/api/inventory.php")
     if os.name == "nt":
-        auth_string = str(get_nonce())
+        auth_string = str(get_nonce_windows())
     else:
-        auth_string = "" # WiP get a Linux version of get_nonce
+        auth_string = ""  # WiP get a Linux version of get_nonce
     target_url = base_url + auth_string
 
     print(f"Connecting to {base_url}...")
