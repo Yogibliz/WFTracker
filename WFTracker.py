@@ -6,6 +6,9 @@ import re
 from prettytable import PrettyTable
 
 import json_fetcher
+import settings
+
+# ----------------------- Data Structures -----------------------
 
 # Warframe API data
 warframe_name = {}
@@ -44,8 +47,10 @@ warframe_parts = {}
 archwing_parts = {}
 weapon_parts = {}
 
-# Menu Options
-MENU_ITEMS = [
+
+# ----------------------- Menu Definitions -----------------------
+
+SELLABLE_ITEMS = [
     {
         "label": "Print Duplicate Primes Parts",
         "header": "----- Duplicate Prime Parts (mastered and unmastered) -----",
@@ -58,6 +63,9 @@ MENU_ITEMS = [
         "func": "print_set_of_tuples_as_table",
         "data": mastered_prime_parts,
     },
+]
+
+SETS = [
     {
         "label": "Print Weapon Prime Parts as Part of Set",
         "header": "----- Prime Weapons Set Progress -----",
@@ -76,9 +84,12 @@ MENU_ITEMS = [
         "func": "print_archwing_set_progress_as_table",
         "data": archwing_parts,
     },
+]
+
+UNMASTERED_ITEMS = [
     {
-        "label": "Print Unmastered Warframes",
-        "header": "----- Unmastered Archwings & Warframes -----",
+        "label": "Print Unmastered Warframes & Archwings",
+        "header": "----- Unmastered Warframes & Archwings -----",
         "func": "print_set_as_table",
         "data": unmastered_warframes,
     },
@@ -114,6 +125,52 @@ MENU_ITEMS = [
     },
 ]
 
+MASTERED_ITEMS = [
+    {
+        "label": "Print Mastered Warframes & Archwings",
+        "header": "----- Mastered or Owned Warframes & Archwings -----",
+        "func": "print_set_as_table",
+        "data": mastered_or_owned_warframes,
+    },
+    {
+        "label": "Print Mastered Primary Weapons",
+        "header": "----- Mastered or Owned Primary Weapons -----",
+        "func": "print_set_as_table",
+        "data": mastered_or_owned_primaries,
+    },
+    {
+        "label": "Print Mastered Secondary Weapons",
+        "header": "----- Mastered or Owned Secondary Weapons -----",
+        "func": "print_set_as_table",
+        "data": mastered_or_owned_secondaries,
+    },
+    {
+        "label": "Print Mastered Melee Weapons",
+        "header": "----- Mastered or Owned Melee Weapons -----",
+        "func": "print_set_as_table",
+        "data": mastered_or_owned_melees,
+    },
+    {
+        "label": "Print Mastered Arch Weapons",
+        "header": "----- Mastered or Owned Arch Weapons -----",
+        "func": "print_set_as_table",
+        "data": mastered_or_owned_arch_weapons,
+    },
+    {
+        "label": "Print Mastered Amps",
+        "header": "----- Mastered or Owned Amps -----",
+        "func": "print_set_as_table",
+        "data": mastered_or_owned_amps,
+    },
+]
+
+MENU_ITEMS = SELLABLE_ITEMS + SETS + UNMASTERED_ITEMS + MASTERED_ITEMS
+
+# Index Breakpoints used for Main Menu splits
+BP_SETS = len(SELLABLE_ITEMS)
+BP_UNMASTERED = BP_SETS + len(SETS)
+BP_MASTERED = BP_UNMASTERED + len(UNMASTERED_ITEMS)
+
 # ----------------------- Fetching from API:s -----------------------
 
 
@@ -140,8 +197,8 @@ def fetch_weapons():
             }
 
 
-# Fetch all Warframe Recipes in the game
-def fetch_warframe_recipes():
+# Fetch all Warframe and Archwing Recipes in the game
+def fetch_warframe_and_archwing_recipes():
     with open("warframe_recipes.json", encoding="utf-8") as wr:
         json_data = json.load(wr)
 
@@ -152,75 +209,74 @@ def fetch_warframe_recipes():
             is_warframe = result_type in warframe_name
             is_archwing = result_type in archwing_name
 
+            if not settings.INCLUDE_NON_PRIME_WARFRAMES_IN_SETS:
+                if "Prime" not in unique_name:
+                    continue
             if not is_warframe and not is_archwing:
                 continue
 
-            # Shared data
+            # Blueprint
             bp_name = clean_name(unique_name)
             bp_count = warframe_inventory.get(unique_name, 0)
             bp_tuple = (bp_name, bp_count)
 
+            progress = 1 if bp_count >= 1 else 0
+
             if is_warframe:
-                item_name = warframe_name[result_type]
                 entry = {
-                    "name": item_name,
+                    "name": warframe_name[result_type],
                     "blueprint": bp_tuple,
                     "neuroptics": ("", 0),
                     "chassis": ("", 0),
                     "systems": ("", 0),
                 }
             else:
-                item_name = archwing_name[result_type]
                 entry = {
-                    # Remove <ARCHWING> tag from archwings.
-                    "name": re.sub(r"<ARCHWING>", "", item_name),
+                    "name": clean_name(archwing_name[result_type]),
                     "blueprint": bp_tuple,
                     "harness": ("", 0),
                     "wings": ("", 0),
                     "systems": ("", 0),
                 }
 
-            has_relevant_parts = False
-
             for ingredient in recipe.get("ingredients", []):
-                type = ingredient["ItemType"]
-                part_name = clean_name(type)
+                item_type = ingredient["ItemType"]
+                part_name = clean_name(item_type)
 
-                if any(
+                if not any(
                     x in part_name
                     for x in ["Neuroptics", "Chassis", "Systems", "Harness", "Wings"]
                 ):
-                    count = warframe_inventory.get(type, 0)
-                    part_tuple = (part_name, count)
+                    continue
 
-                    # Warframe
-                    if is_warframe:
-                        if "Neuroptics" in part_name:
-                            entry["neuroptics"] = part_tuple
-                            has_relevant_parts = True
-                        elif "Chassis" in part_name:
-                            entry["chassis"] = part_tuple
-                            has_relevant_parts = True
-                        elif "Systems" in part_name:
-                            entry["systems"] = part_tuple
-                            has_relevant_parts = True
+                count = warframe_inventory.get(item_type, 0)
+                part_tuple = (part_name, count)
 
-                    # Archwing
-                    elif is_archwing:
-                        if "Harness" in part_name:
-                            entry["harness"] = part_tuple
-                            has_relevant_parts = True
-                        elif "Wings" in part_name:
-                            entry["wings"] = part_tuple
-                            has_relevant_parts = True
-                        elif "Systems" in part_name:
-                            entry["systems"] = part_tuple
-                            has_relevant_parts = True
+                if count >= 1:
+                    progress += 1
 
-            if has_relevant_parts:
+                # Warframe parts
+                if is_warframe:
+                    if "Neuroptics" in part_name:
+                        entry["neuroptics"] = part_tuple
+                    elif "Chassis" in part_name:
+                        entry["chassis"] = part_tuple
+                    elif "Systems" in part_name:
+                        entry["systems"] = part_tuple
+
+                # Archwing parts
+                else:
+                    if "Harness" in part_name:
+                        entry["harness"] = part_tuple
+                    elif "Wings" in part_name:
+                        entry["wings"] = part_tuple
+                    elif "Systems" in part_name:
+                        entry["systems"] = part_tuple
+
+            if progress >= settings.WARFRAME_PROGRESS_FILTER:
                 if is_warframe:
                     warframe_parts[unique_name] = entry
-                elif is_archwing:
+                else:
                     archwing_parts[unique_name] = entry
 
 
@@ -233,50 +289,42 @@ def fetch_weapon_recipes():
             unique_name = recipe["uniqueName"]
             result_type = recipe["resultType"]
 
-            if "Prime" not in unique_name:
-                continue
-
+            if not settings.INCLUDE_NON_PRIME_WEAPONS_IN_SETS:
+                if "Prime" not in unique_name:
+                    continue
             if result_type in warframe_name or result_type in archwing_name:
                 continue
-
-            if "Sentinels" in unique_name or "Sentinel" in clean_name(result_type):
+            if "Sentinel" in unique_name or "Sentinel" in clean_name(result_type):
                 continue
-
             if "Weapons" not in unique_name:
                 continue
 
-            current_parts = []
-            owned_ingredients = 0
-            main_bp_owned = warframe_inventory.get(unique_name, 0)
+            bp_count = warframe_inventory.get(unique_name, 0)
+            blueprint = (clean_name(unique_name), bp_count)
+
+            progress = 1 if bp_count >= 1 else 0
+            owned_parts = []
 
             for ingredient in recipe.get("ingredients", []):
-                type = ingredient["ItemType"]
-                part_name = clean_name(type)
+                item_type = ingredient["ItemType"]
+                part_name = clean_name(item_type)
 
-                if "Prime" not in part_name:
-                    continue
+                if not settings.INCLUDE_NON_PRIME_WEAPONS_IN_SETS:
+                    if "Prime" not in part_name:
+                        continue
 
-                # If type is in inventory
-                if type in warframe_inventory:
-                    count = warframe_inventory.get(type, 0)
-                    current_parts.append((part_name, count))
-                    if count > 0:
-                        owned_ingredients += 1
-                else:
-                    current_parts.append((part_name, 0))
+                count = warframe_inventory.get(item_type, 0)
 
-            total_owned = owned_ingredients + (1 if main_bp_owned > 0 else 0)
+                if count >= 1:
+                    owned_parts.append((part_name, count))
+                    progress += 1
 
-            if total_owned >= 2:
-                entry = {
-                    "name": weapon_name_category[recipe["resultType"]]["name"],
-                    "blueprint": (
-                        clean_name(unique_name),
-                        main_bp_owned,
-                    ),
-                    "parts": current_parts,
+            if progress >= settings.WEAPON_PROGRESS_FILTER:
+                weapon_parts[unique_name] = {
+                    "name": weapon_name_category[result_type]["name"],
+                    "blueprint": blueprint,
+                    "parts": owned_parts,
                 }
-                weapon_parts[unique_name] = entry
 
 
 # Fetch the inventory data.
@@ -307,11 +355,16 @@ def fetch_items():
     fetch_inventory_data()
     fetch_warframes()
     fetch_weapons()
-    fetch_warframe_recipes()
+    fetch_warframe_and_archwing_recipes()
     fetch_weapon_recipes()
 
 
 # ----------------------- Formatting Helpers -----------------------
+
+
+# Helper to format if part more than 1 or not.
+def has_part(count):
+    return "✓" if count >= 1 else "✗"
 
 
 # Helper to clean up uniqueName to name mapping
@@ -321,6 +374,9 @@ def clean_name(name_str):
     # Split CamelCase
     cleaned = re.sub(r"([a-z])([A-Z])", r"\1 \2", base_name)
     cleaned = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", cleaned)
+
+    # Remove <ARCHWING> tag
+    cleaned = re.sub(r"<ARCHWING>\s", "", cleaned)
 
     # Replace Helmet with Neuroptics
     cleaned = re.sub(r"\sHelmet\s", " Neuroptics ", cleaned)
@@ -338,15 +394,41 @@ def main_menu():
     menu.title = "----- Main Menu -----"
 
     for index, item in enumerate(MENU_ITEMS):
+        if index == 0:
+            menu.add_row(["", "--- Sellable Items ---"])
+
+        elif index == BP_SETS:
+            menu.add_row(["", ""])  # Spacer
+            menu.add_row(["", "--- Sets ---"])
+
+        elif index == BP_UNMASTERED:
+            menu.add_row(["", ""])  # Spacer
+            menu.add_row(["", "--- Unmastered Items ---"])
+
+        elif index == BP_MASTERED:
+            menu.add_row(["", ""])  # Spacer
+            menu.add_row(["", "--- Mastered Items ---"])
+
         menu.add_row([index, item["label"]])
 
     selected_option = -1
+
     # Automatically calculate valid range based on list size
     while selected_option not in range(len(MENU_ITEMS)):
         os.system("cls" if os.name == "nt" else "clear")
         print(menu)
+
+        # Unfiltered items, includes warframe weapons (e.g. Valkyr Talons), Sentinel weapons (e.g. Deconstructor) etc...
+        # print(unmastered_others)
+        # print(mastered_or_owned_others)
+
+        user_input = input("What do you want to do? (q to quit): ")
+
+        if user_input == "q":
+            exit()
+
         try:
-            selected_option = int(input("What do you want to do?: "))
+            selected_option = int(user_input)
         except ValueError:
             continue
 
@@ -367,8 +449,8 @@ def print_selection(index):
         print(f"Error: Function '{func_name}' not found.")
 
     go_back = ""
-    while go_back != "y":
-        go_back = input("Go back to menu or quit? (y/q): ").lower()
+    while go_back != "b":
+        go_back = input("Go back to menu or quit? (b/q): ").lower()
         if go_back == "q":
             exit()
     main_menu()
@@ -409,19 +491,48 @@ def print_warframe_set_progress_as_table(prime_warframe_set, title):
 
     # Sort by name
     for entry in prime_warframe_set.values():
-        progress = (
-            entry["blueprint"][1]
-            + entry["neuroptics"][1]
-            + entry["chassis"][1]
-            + entry["systems"][1]
-        )
+        bp = entry["blueprint"][1]
+        neu = entry["neuroptics"][1]
+        cha = entry["chassis"][1]
+        sys = entry["systems"][1]
+
+        progress = sum(count >= 1 for count in (bp, neu, cha, sys))
 
         row = [
             entry["name"],
-            entry["blueprint"][1],
-            entry["neuroptics"][1],
-            entry["chassis"][1],
-            entry["systems"][1],
+            has_part(bp),
+            has_part(neu),
+            has_part(cha),
+            has_part(sys),
+            f"{progress}/4",
+        ]
+        table.add_row(row)
+    print(table)
+
+
+# For archwing_sets
+def print_archwing_set_progress_as_table(archwing_set, title):
+    table = PrettyTable(
+        ["Item", "Blueprint", "Harness", "Wings", "Systems", "Progress"]
+    )
+    table.title = title
+    table.sortby = "Progress"
+    table.reversesort = True
+
+    for entry in archwing_set.values():
+        bp = entry["blueprint"][1]
+        har = entry["harness"][1]
+        wing = entry["wings"][1]
+        sys = entry["systems"][1]
+
+        progress = sum(count >= 1 for count in (bp, har, wing, sys))
+
+        row = [
+            entry["name"],
+            has_part(bp),
+            has_part(har),
+            has_part(wing),
+            has_part(sys),
             f"{progress}/4",
         ]
         table.add_row(row)
@@ -450,36 +561,6 @@ def print_weapon_set_progress_as_table(prime_weapon_set, title):
         formatted_parts = ", ".join(parts_str_list)
 
         table.add_row([entry["name"], formatted_parts, progress_str])
-    print(table)
-
-
-# For archwing_sets
-def print_archwing_set_progress_as_table(archwing_set, title):
-    table = PrettyTable(
-        ["Item", "Blueprint", "Harness", "Wings", "Systems", "Progress"]
-    )
-    table.title = title
-    table.sortby = "Progress"
-    table.reversesort = True
-
-    for entry in archwing_set.values():
-        part_keys = ["blueprint", "harness", "wings", "systems"]
-        owned = 0
-        for key in part_keys:
-            if entry[key][1] >= 1:
-                owned += 1
-
-        progress_str = f"{owned}/{len(part_keys)}"
-
-        row = [
-            entry["name"],
-            entry["blueprint"][1],
-            entry["harness"][1],
-            entry["wings"][1],
-            entry["systems"][1],
-            progress_str,
-        ]
-        table.add_row(row)
     print(table)
 
 
@@ -558,7 +639,7 @@ def filter_mastered_and_owned_gear():
 
                 # Arch-Weapon
                 elif category in ["SpaceGuns", "SpaceMelee"]:
-                    mastered_or_owned_arch_weapons.add(name)
+                    mastered_or_owned_arch_weapons.add(clean_name(name))
 
                 # Weirdly categoriezed in API. Might set up exceptions to catch later...
                 else:
@@ -574,19 +655,30 @@ def filter_unmastered_warframes():
 
 # Filter Unmastered Weapons
 def filter_unmastered_weapons():
-    for _, data in weapon_name_category.items():
+    for key, data in weapon_name_category.items():
         name = data["name"]
         category = data["category"]
 
-        # Amp
-        if category == "OperatorAmplifiers":
+        # Primary
+        if category == "LongGuns":
+            if name not in mastered_or_owned_primaries:
+                unmastered_primaries.add(name)
+
+        # Amps require the use of the key, since they're categorised as pistols for some reason.
+        elif "OperatorAmplifiers" in key and "Prism" in key:
             if name not in mastered_or_owned_amps:
                 unmastered_amps.add(name)
 
-        # Primary
-        elif category == "LongGuns":
-            if name not in mastered_or_owned_primaries:
-                unmastered_primaries.add(name)
+        # Special case for sirocco since it's marked as a pistol in the key,
+        # and the only amp categoriesed as "OperatorAmps". (Hope they change them all to OperatorAmps...)
+        elif category == "OperatorAmps":
+            if name not in mastered_or_owned_amps:
+                unmastered_amps.add(name)
+
+        # Special case for Zaw weapons, since they're catagorized as pistols (Surely some day these categories will make sense.)
+        elif "/Ostron/Melee" in key and "Tip" in key:
+            if name not in mastered_or_owned_melees:
+                unmastered_melees.add(name)
 
         # Secondary
         elif category == "Pistols":
@@ -601,7 +693,7 @@ def filter_unmastered_weapons():
         # Arch-Weapon
         elif category in ["SpaceGuns", "SpaceMelee"]:
             if name not in mastered_or_owned_arch_weapons:
-                unmastered_arch_weapons.add(name)
+                unmastered_arch_weapons.add(clean_name(name))
 
         # Weirdly categoriezed in API. Might set up exceptions to catch later...
         else:
