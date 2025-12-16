@@ -91,7 +91,6 @@ def get_nonce_linux():
                         cmdline = f.read().decode().replace("\0", " ")
                         if process_name in cmdline:
                             pid = int(dirname)
-                            print(f"Attached to process: {pid}")
                             break
                 except (IOError, OSError):
                     continue
@@ -176,8 +175,7 @@ def get_nonce_linux():
                                 acc_id_data = chunk[acc_id_start : acc_id_start + 24]
                                 acc_id = acc_id_data.decode("utf-8", errors="ignore")
 
-                                full_auth = f"?accountId={acc_id}&nonce={nonce}"
-                                print(f"Candidate found: {full_auth}")
+                                full_auth = f"?accountId={acc_id}&nonce={nonce}" 
                                 return full_auth
 
                             # Find next occurrence in the same chunk
