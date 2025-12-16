@@ -2,9 +2,14 @@ import json
 import os
 import re
 
-import pymem
-import pymem.pattern
 import requests
+
+if os.name == "nt":
+    try:
+        import pymem
+        import pymem.pattern
+    except ImportError:
+        print("Warning: pymem not installed. Windows functionality will be limited.")
 
 
 def get_nonce_windows():
@@ -72,13 +77,132 @@ def get_nonce_windows():
     return None
 
 
+def get_nonce_linux():
+    process_name = "Warframe.x64.exe"
+    pid = None
+
+    # 1. Find the PID (Process ID)
+    # We iterate over /proc
+    try:
+        for dirname in os.listdir("/proc"):
+            if dirname.isdigit():
+                try:
+                    with open(f"/proc/{dirname}/cmdline", "rb") as f:
+                        cmdline = f.read().decode().replace("\0", " ")
+                        if process_name in cmdline:
+                            pid = int(dirname)
+                            print(f"Attached to process: {pid}")
+                            break
+                except (IOError, OSError):
+                    continue
+    except Exception as e:
+        print(f"Error scanning processes: {e}")
+        return None
+
+    if pid is None:
+        print(f"Could not find process: {process_name}")
+        return None
+
+    # 2. Define Pattern
+    # ?accountId=
+    pattern = b"\x3f\x61\x63\x63\x6f\x75\x6e\x74\x49\x64\x3d"
+
+    try:
+        maps_path = f"/proc/{pid}/maps"
+        mem_path = f"/proc/{pid}/mem"
+
+        # 3. Scan Memory Regions
+        with open(maps_path, "r") as maps_file, open(mem_path, "rb", 0) as mem_file:
+            for line in maps_file:
+                # Parse map line: 00400000-00452000 r-xp ...
+                parts = line.split()
+                if not parts:
+                    continue
+
+                address_range = parts[0]
+                perms = parts[1]
+
+                # Filter: We only want readable/writable private memory (heap/stack)
+                # 'rw' is standard for valid data segments in Wine/Proton
+                if "rw" not in perms:
+                    continue
+
+                start_str, end_str = address_range.split("-")
+                start_addr = int(start_str, 16)
+                end_addr = int(end_str, 16)
+                size = end_addr - start_addr
+
+                # Skip massive empty regions or tiny fragments to save time
+                # Lower bound: 2^12 (4 KiB - 1 page)
+                # Upper bound: 2^28 (256 MiB - arbitrary sanity check)
+                if size < 4096 or size > 268435456:
+                    continue
+
+                try:
+                    mem_file.seek(start_addr)
+                    # Read the chunk
+                    chunk = mem_file.read(size)
+
+                    if chunk:
+                        # Search for pattern in this chunk
+                        found_idx = chunk.find(pattern)
+
+                        while found_idx != -1:
+                            # 4. Offset Calculation & Extraction
+                            # Found Pattern Address = start_addr + found_idx
+                            # Target (Nonce) Address = Found Address + 42 bytes
+
+                            # 11 bytes (?accountId=) + 24 bytes (ID) + 7 bytes (&nonce=)
+
+                            nonce_start_offset = found_idx + 42
+
+                            # Read 64 bytes (2^6) from the nonce position to ensure we capture all digits
+                            # Slicing the chunk is faster than seeking/reading again
+                            raw_nonce_area = chunk[
+                                nonce_start_offset : nonce_start_offset + 64
+                            ]
+
+                            # raw bytes (hex) to readable text (or, well... numbers in this case)
+                            decoded = raw_nonce_area.decode("utf-8", errors="ignore")
+
+                            match = re.match(r"^\d+", decoded)
+                            if match:
+                                nonce = match.group(0)
+
+                                # Extract Account ID (+11 from pattern start)
+                                acc_id_start = found_idx + 11
+
+                                # Extract the ID (24 characters long)
+                                acc_id_data = chunk[acc_id_start : acc_id_start + 24]
+                                acc_id = acc_id_data.decode("utf-8", errors="ignore")
+
+                                full_auth = f"?accountId={acc_id}&nonce={nonce}"
+                                print(f"Candidate found: {full_auth}")
+                                return full_auth
+
+                            # Find next occurrence in the same chunk
+                            found_idx = chunk.find(pattern, found_idx + 1)
+
+                except (OSError, ValueError):
+                    # Region might be protected or changed during read
+                    continue
+
+    except PermissionError:
+        print("Permission Denied: Run with sudo/root to read process memory.")
+    except Exception as e:
+        print(f"Error reading memory: {e}")
+
+    print("Failed to confirm a nonce.")
+    return None
+
+
 def fetch_and_save_inventory():
     # 1. Construct the URL
     base_url = str("https://api.warframe.com/api/inventory.php")
     if os.name == "nt":
         auth_string = str(get_nonce_windows())
     else:
-        auth_string = ""  # WiP get a Linux version of get_nonce
+        auth_string = str(get_nonce_linux())
     target_url = base_url + auth_string
 
     print(f"Connecting to {base_url}...")
