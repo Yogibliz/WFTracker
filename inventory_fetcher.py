@@ -203,8 +203,6 @@ def fetch_and_save_inventory():
         auth_string = str(get_nonce_linux())
     target_url = base_url + auth_string
 
-    print(f"Connecting to {base_url}...")
-
     try:
         # 2. Execute Request
         # Set a user-agent to avoid being blocked by basic filters
@@ -223,14 +221,6 @@ def fetch_and_save_inventory():
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
 
-        # 5. Report Size (Powers of 2)
-        # Get size in bytes
-        size_bytes = os.path.getsize(filename)
-        # Convert to Kibibytes (KiB = 2^10 bytes)
-        size_kib = size_bytes / 1024
-
-        print(f"Success! Saved to {filename}")
-        print(f"Data size: {size_kib:.2f} KiB")
 
     except requests.exceptions.HTTPError as e:
         print(f"HTTP Error: {e}")
