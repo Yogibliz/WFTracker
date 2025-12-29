@@ -363,6 +363,12 @@ def fetch_inventory_data():
         ):
             return False
 
+        # Skip weapon part blueprints only when prime-only mode is enabled
+        # (Mainly a fix for GalariakPrime which isn't a prime weapon...)
+        if "weaponparts" in lower_type and item_type.endswith("Blueprint"):
+            if settings.INCLUDE_NON_PRIME_WEAPONS_IN_SETS == 0:
+                return False
+
         # Check if it's a weapon or warframe based on the path
         is_weapon = "weapon" in lower_type
         is_warframe = "warframe" in lower_type or "archwing" in lower_type
