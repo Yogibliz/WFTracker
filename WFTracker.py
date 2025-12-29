@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import json
 import os
@@ -249,7 +251,15 @@ def fetch_warframe_and_archwing_recipes():
                 ):
                     continue
 
+                # Count both Blueprint and Component versions
+                # e.g., CalibianPrimeSystemsBlueprint + CalibianPrimeSystemsComponent
+                blueprint_version = item_type if item_type.endswith("Blueprint") else item_type + "Blueprint"
+                component_version = item_type if not item_type.endswith("Blueprint") else item_type.replace("Blueprint", "Component")
+                
                 count = warframe_inventory.get(item_type, 0)
+                count += warframe_inventory.get(blueprint_version, 0)
+                count += warframe_inventory.get(component_version, 0)
+                
                 part_tuple = (part_name, count)
 
                 if count >= 1:
@@ -298,6 +308,9 @@ def fetch_weapon_recipes():
                 continue
             if "Weapons" not in unique_name:
                 continue
+            # Skip weapon part blueprints (WeaponParts recipes shouldn't end in Blueprint)
+            if "WeaponParts" in unique_name and unique_name.endswith("Blueprint"):
+                continue
 
             bp_count = warframe_inventory.get(unique_name, 0)
             blueprint = (clean_name(unique_name), bp_count)
@@ -313,7 +326,13 @@ def fetch_weapon_recipes():
                     if "Prime" not in part_name:
                         continue
 
+                # Count both Blueprint and Component versions
+                blueprint_version = item_type if item_type.endswith("Blueprint") else item_type + "Blueprint"
+                component_version = item_type if not item_type.endswith("Blueprint") else item_type.replace("Blueprint", "Component")
+                
                 count = warframe_inventory.get(item_type, 0)
+                count += warframe_inventory.get(blueprint_version, 0)
+                count += warframe_inventory.get(component_version, 0)
 
                 if count >= 1:
                     owned_parts.append((part_name, count))
@@ -332,22 +351,51 @@ def fetch_inventory_data():
     with open("inventory.json") as f:
         data = json.load(f)
 
+    # Helper function to check if an item should be included based on prime filter
+    def should_include_item(item_type):
+        lower_type = item_type.lower()
+
+        # Skip projection, bucks, and resources
+        if (
+            "projection" in lower_type
+            or "bucks" in lower_type
+            or "resources" in lower_type
+        ):
+            return False
+
+        # Check if it's a weapon or warframe based on the path
+        is_weapon = "weapon" in lower_type
+        is_warframe = "warframe" in lower_type or "archwing" in lower_type
+
+        # Determine if this item passes the prime filter
+        is_prime = "prime" in lower_type
+
+        if is_weapon:
+            # Include if: (item is prime) OR (settings allow non-prime weapons)
+            return is_prime or settings.INCLUDE_NON_PRIME_WEAPONS_IN_SETS == 1
+        elif is_warframe:
+            # Include if: (item is prime) OR (settings allow non-prime warframes)
+            return is_prime or settings.INCLUDE_NON_PRIME_WARFRAMES_IN_SETS == 1
+        else:
+            # For other item types, include if prime or if we're including non-primes
+            return is_prime or (
+                settings.INCLUDE_NON_PRIME_WEAPONS_IN_SETS == 1
+                or settings.INCLUDE_NON_PRIME_WARFRAMES_IN_SETS == 1
+            )
+
+    # Import from MiscItems (old format - components as MiscItems)
     if "MiscItems" in data:
         for item in data["MiscItems"]:
             item_type = item.get("ItemType", "")
-            lower_type = item_type.lower()
+            if should_include_item(item_type):
+                warframe_inventory[item_type] = item.get("ItemCount", 0)
 
-            if "prime" not in lower_type:
-                continue
-
-            if (
-                "projection" in lower_type
-                or "bucks" in lower_type
-                or "resources" in lower_type
-            ):
-                continue
-
-            warframe_inventory[item_type] = item.get("ItemCount", 0)
+    # Import from Recipes (new format - components as Recipes)
+    if "Recipes" in data:
+        for item in data["Recipes"]:
+            item_type = item.get("ItemType", "")
+            if should_include_item(item_type):
+                warframe_inventory[item_type] = item.get("ItemCount", 0)
 
 
 # Fetch everything in correct order, helper for main
@@ -570,8 +618,28 @@ def print_weapon_set_progress_as_table(prime_weapon_set, title):
 # Return each prime item there's a duplicate of.
 def filter_duplicate_prime_parts():
     for item in warframe_inventory:
-        if warframe_inventory[item] > 1:
-            duplicate_prime_parts.add((clean_name(item), warframe_inventory[item]))
+        # Only process Blueprint versions
+        if not item.endswith("Blueprint"):
+            continue
+            
+        blueprint_count = warframe_inventory[item]
+        
+        # Check if there's a Component version of this part
+        component_version = item.replace("Blueprint", "Component")
+        component_count = warframe_inventory.get(component_version, 0)
+        
+        # The part is sellable if:
+        # 1. There are multiple blueprints (blueprint_count > 1), OR
+        # 2. There's at least 1 blueprint AND 1 component (meaning the set is complete, so blueprint is extra)
+        if blueprint_count > 1 or (blueprint_count >= 1 and component_count >= 1):
+            # Count only the sellable blueprints
+            sellable_count = blueprint_count
+            if component_count >= 1:
+                # If there's a component, we can sell all blueprints (the component means it's built)
+                sellable_count = blueprint_count
+            
+            if sellable_count >= 1:
+                duplicate_prime_parts.add((clean_name(item), sellable_count))
 
 
 # Return a list of all prime parts of mastered items.
