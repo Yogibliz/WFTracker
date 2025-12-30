@@ -2,14 +2,14 @@
 
 SELLABLE_ITEMS = [
     {
-        "label": "Print Prime Parts for Mastered",
+        "label": "Print Excess Mastered Prime Parts",
         "func": "print_set_of_tuples_as_table",
-        "args": ("mastered_prime_parts", "----- Mastered Prime Parts -----"),
+        "args": ("mastered_prime_parts", "----- Excess Mastered Prime Parts -----"),
     },
     {
         "label": "Print Duplicate Primes Parts",
         "func": "print_set_of_tuples_as_table",
-        "args": ("duplicate_prime_parts", "----- Duplicate Prime Parts (mastered and unmastered) -----"),
+        "args": ("duplicate_prime_parts", "----- Duplicate Prime Parts (All) -----"),
     },
 ]
 

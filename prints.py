@@ -243,9 +243,14 @@ def print_weapon_set_progress_as_table(prime_weapon_set, title):
     table.reversesort = True
 
     for entry in prime_weapon_set.values():
-        parts_str_list = [f"Blueprint: {entry['blueprint'][1]}"]
+        # Use full weapon name + "Blueprint" instead of just "Blueprint"
+        blueprint_name = f"{entry['name']} Blueprint"
+        parts_str_list = [f"{blueprint_name}: {entry['blueprint'][1]}"]
         amount = 1
         progress = 0
+
+        if entry['blueprint'][1] >= 1:
+            progress += 1
 
         for part_name, count in entry["parts"]:
             if count >= 1:

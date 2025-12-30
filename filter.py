@@ -59,33 +59,6 @@ def filter_mastered_and_owned_gear(
                     mastered_or_owned_others.add(name)
 
 
-# Return each prime item there's a duplicate of.
-def filter_duplicate_prime_parts(warframe_inventory, duplicate_prime_parts):
-    for item in warframe_inventory:
-        # Only process Blueprint versions
-        if not item.endswith("Blueprint"):
-            continue
-
-        blueprint_count = warframe_inventory[item]
-
-        # Check if there's a Component version of this part
-        component_version = item.replace("Blueprint", "Component")
-        component_count = warframe_inventory.get(component_version, 0)
-
-        # The part is sellable if:
-        # 1. There are multiple blueprints (blueprint_count > 1), OR
-        # 2. There's at least 1 blueprint AND 1 component (meaning the set is complete, so blueprint is extra)
-        if blueprint_count > 1 or (blueprint_count >= 1 and component_count >= 1):
-            # Count only the sellable blueprints
-            sellable_count = blueprint_count
-            if component_count >= 1:
-                # If there's a component, we can sell all blueprints (the component means it's built)
-                sellable_count = blueprint_count
-
-            if sellable_count >= 1:
-                duplicate_prime_parts.add((clean_name(item), sellable_count))
-
-
 # Return a list of all prime parts of mastered items.
 def filter_mastered_prime_parts(
     warframe_inventory,
@@ -121,6 +94,63 @@ def filter_mastered_prime_parts(
                 mastered_prime_parts.add(
                     (clean_name(inv_item_type), warframe_inventory[inv_item_type])
                 )
+
+
+# Return each prime item there's a duplicate of.
+def filter_duplicate_prime_parts(
+    warframe_inventory,
+    duplicate_prime_parts,
+    mastered_prime_parts,
+):
+    # Check for duplicates in aggregate_mastered_items
+    for mastered_item in mastered_prime_parts:
+        if "Prime" not in mastered_item:
+            continue
+
+        # Search inventory for this mastered item (normalized)
+        check_name = mastered_item.replace(" ", "")
+
+        for inv_item in warframe_inventory:
+            if check_name not in inv_item.replace(" ", ""):
+                continue
+
+            item_count = warframe_inventory[inv_item]
+
+            # Check if there's a Blueprint/Component pair
+            component_version = inv_item.replace("Blueprint", "Component")
+            component_count = warframe_inventory.get(component_version, 0)
+
+            # Item is a duplicate if:
+            # 1. Multiple copies exist (count > 1), OR
+            # 2. There's at least 1 blueprint AND 1 component (complete set means blueprint is extra)
+            if item_count > 1 or (item_count >= 1 and component_count >= 1):
+                sellable_count = item_count
+                if sellable_count >= 1:
+                    duplicate_prime_parts.add((clean_name(inv_item), sellable_count))
+
+    # Also check inventory items that aren't directly matched to mastered items
+    for item in warframe_inventory:
+        if "Prime" not in item:
+            continue
+
+        blueprint_count = warframe_inventory[item]
+
+        # Check if there's a Component version of this part
+        component_version = item.replace("Blueprint", "Component")
+        component_count = warframe_inventory.get(component_version, 0)
+
+        # The part is sellable if:
+        # 1. There are multiple blueprints (blueprint_count > 1), OR
+        # 2. There's at least 1 blueprint AND 1 component (meaning the set is complete, so blueprint is extra)
+        if blueprint_count > 1 or (blueprint_count >= 1 and component_count >= 1):
+            # Count only the sellable blueprints
+            sellable_count = blueprint_count
+            if component_count >= 1:
+                # If there's a component, we can sell all blueprints (the component means it's built)
+                sellable_count = blueprint_count
+
+            if sellable_count >= 1:
+                duplicate_prime_parts.add((clean_name(item), sellable_count))
 
 
 # Filter Unmastered Warframes
@@ -227,7 +257,6 @@ def filter_items(
         mastered_or_owned_arch_weapons,
         mastered_or_owned_others,
     )
-    filter_duplicate_prime_parts(warframe_inventory, duplicate_prime_parts)
     filter_mastered_prime_parts(
         warframe_inventory,
         mastered_or_owned_warframes,
@@ -237,6 +266,11 @@ def filter_items(
         mastered_or_owned_amps,
         mastered_or_owned_arch_weapons,
         mastered_or_owned_others,
+        mastered_prime_parts,
+    )
+    filter_duplicate_prime_parts(
+        warframe_inventory,
+        duplicate_prime_parts,
         mastered_prime_parts,
     )
     filter_unmastered_warframes(
