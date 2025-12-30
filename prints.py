@@ -268,31 +268,28 @@ def print_weapon_set_progress_as_table(prime_weapon_set, title):
 
 # For the prime_sentinel_sets.
 def print_sentinel_set_progress_as_table(sentinel_set, title):
-    table = PrettyTable(["Item", "Parts", "Progress"])
+    table = PrettyTable(
+        ["Item", "Blueprint", "Cerebrum", "Carapace", "Systems", "Progress"]
+    )
     table.title = title
     table.sortby = "Progress"
     table.reversesort = True
 
     for entry in sentinel_set.values():
-        # Use full sentinel name + "Blueprint" instead of just "Blueprint"
-        blueprint_name = f"{entry['name']} Blueprint"
-        parts_str_list = [f"{blueprint_name}: {entry['blueprint'][1]}"]
-        amount = 1
-        progress = 0
+        bp = entry["blueprint"][1]
+        cer = entry["cerebrum"][1]
+        car = entry["carapace"][1]
+        sys = entry["systems"][1]
 
-        if entry["blueprint"][1] >= 1:
-            progress += 1
+        progress = sum(count >= 1 for count in (bp, cer, car, sys))
 
-        for part_key in ["cerebrum", "carapace", "systems"]:
-            part_name, count = entry[part_key]
-            if part_name:  # Only include if part_name is not empty
-                if count >= 1:
-                    progress += 1
-                amount += 1
-                parts_str_list.append(f"{part_name}: {count}")
-
-        progress_str = f"Progress: {progress}/{amount}"
-        formatted_parts = ", ".join(parts_str_list)
-
-        table.add_row([entry["name"], formatted_parts, progress_str])
+        row = [
+            entry["name"],
+            has_part(bp),
+            has_part(cer),
+            has_part(car),
+            has_part(sys),
+            f"{progress}/4",
+        ]
+        table.add_row(row)
     print(table)
