@@ -110,6 +110,14 @@ OPTIONS = [
     }
 ]
 
+WARFRAME_MARKET = [
+    {   # Will give option to choose between duplicate parts and excess mastered parts etc...
+        "label": "Post sell orders to Warframe Market (for sellable items)",
+        "func": "post_sell_orders_to_warframe_market",
+        "args": (),
+    },
+]
+
 START_MENU = [
     {
         "label": "Sellable Items",
@@ -132,6 +140,11 @@ START_MENU = [
         "args": (),
     },
     {
+        "label": "Warframe Market Options",
+        "func": "go_to_warframe_market_menu",
+        "args": (),  
+    },
+    {
         "label": "Options",
         "func": "go_to_options_menu",
         "args": (),
@@ -144,5 +157,6 @@ SUBMENU_MAPPING = {
     "go_to_sets_menu": SETS,
     "go_to_unmastered_items_menu": UNMASTERED_ITEMS,
     "go_to_mastered_items_menu": MASTERED_ITEMS,
+    "go_to_warframe_market_menu": WARFRAME_MARKET,
     "go_to_options_menu": OPTIONS,
 }

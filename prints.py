@@ -249,7 +249,7 @@ def print_weapon_set_progress_as_table(prime_weapon_set, title):
         amount = 1
         progress = 0
 
-        if entry['blueprint'][1] >= 1:
+        if entry["blueprint"][1] >= 1:
             progress += 1
 
         for part_name, count in entry["parts"]:

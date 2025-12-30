@@ -8,12 +8,14 @@ from fetch import clean_name
 def filter_mastered_and_owned_gear(
     warframe_name,
     weapon_name_category,
+    sentinel_and_companion_name,
     mastered_or_owned_warframes,
     mastered_or_owned_primaries,
     mastered_or_owned_secondaries,
     mastered_or_owned_melees,
     mastered_or_owned_amps,
     mastered_or_owned_arch_weapons,
+    mastered_or_owned_sentinels_and_companions,
     mastered_or_owned_others,
 ):
     with open("inventory.json", encoding="utf-8") as inv:
@@ -26,6 +28,10 @@ def filter_mastered_and_owned_gear(
             # Filter Mastered Warframes
             if item_path in warframe_name:
                 mastered_or_owned_warframes.add(warframe_name[item_path])
+
+            # Filter Mastered Sentinels and Companions
+            if item_path in sentinel_and_companion_name:
+                mastered_or_owned_sentinels_and_companions.add(clean_name(sentinel_and_companion_name[item_path]))
 
             # Filter Mastered Weapons
             if item_path in weapon_name_category:
@@ -223,10 +229,23 @@ def filter_unmastered_weapons(
                 unmastered_others.add(name)
 
 
+# Filter unmastered sentinels and companions
+def filter_unmastered_sentinels_and_companions(
+    sentinel_and_companion_name,
+    mastered_or_owned_sentinels_and_companions,
+    unmastered_sentinels_and_companions,
+):
+    for _, name in sentinel_and_companion_name.items():
+        clean_sentinel_name = clean_name(name)
+        if clean_sentinel_name not in mastered_or_owned_sentinels_and_companions:
+            unmastered_sentinels_and_companions.add(clean_sentinel_name)
+
+
 # Filter everything in correct order, helper for main
 def filter_items(
     warframe_name,
     weapon_name_category,
+    sentinel_and_companion_name,
     warframe_inventory,
     mastered_or_owned_warframes,
     mastered_or_owned_primaries,
@@ -234,6 +253,7 @@ def filter_items(
     mastered_or_owned_melees,
     mastered_or_owned_amps,
     mastered_or_owned_arch_weapons,
+    mastered_or_owned_sentinels_and_companions,
     mastered_or_owned_others,
     unmastered_warframes,
     unmastered_primaries,
@@ -241,6 +261,7 @@ def filter_items(
     unmastered_melees,
     unmastered_amps,
     unmastered_arch_weapons,
+    unmastered_sentinels_and_companions,
     unmastered_others,
     duplicate_prime_parts,
     mastered_prime_parts,
@@ -248,12 +269,14 @@ def filter_items(
     filter_mastered_and_owned_gear(
         warframe_name,
         weapon_name_category,
+        sentinel_and_companion_name,
         mastered_or_owned_warframes,
         mastered_or_owned_primaries,
         mastered_or_owned_secondaries,
         mastered_or_owned_melees,
         mastered_or_owned_amps,
         mastered_or_owned_arch_weapons,
+        mastered_or_owned_sentinels_and_companions,
         mastered_or_owned_others,
     )
     filter_mastered_prime_parts(
@@ -289,4 +312,9 @@ def filter_items(
         unmastered_secondaries,
         unmastered_arch_weapons,
         unmastered_others,
+    )
+    filter_unmastered_sentinels_and_companions(
+        sentinel_and_companion_name,
+        mastered_or_owned_sentinels_and_companions,
+        unmastered_sentinels_and_companions,
     )

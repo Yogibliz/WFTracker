@@ -13,6 +13,7 @@ from prints import main_menu
 warframe_name = {}
 archwing_name = {}
 weapon_name_category = {}
+sentinel_and_companion_name = {}
 
 # Inventory data
 warframe_inventory = dict()
@@ -24,6 +25,7 @@ mastered_or_owned_secondaries = set()
 mastered_or_owned_melees = set()
 mastered_or_owned_amps = set()
 mastered_or_owned_arch_weapons = set()
+mastered_or_owned_sentinels_and_companions = set()
 mastered_or_owned_others = set()
 
 # Separate Unmastered
@@ -33,6 +35,7 @@ unmastered_secondaries = set()
 unmastered_melees = set()
 unmastered_amps = set()
 unmastered_arch_weapons = set()
+unmastered_sentinels_and_companions = set()
 unmastered_others = set()
 
 # Sellable duplicates
@@ -45,7 +48,7 @@ mastered_prime_parts = set()
 warframe_parts = {}
 archwing_parts = {}
 weapon_parts = {}
-
+sentinel_parts = {}
 
 # ----------------------------------- Main -----------------------------------
 
@@ -81,14 +84,17 @@ if __name__ == "__main__":
         warframe_name,
         archwing_name,
         weapon_name_category,
+        sentinel_and_companion_name,
         warframe_inventory,
         warframe_parts,
         archwing_parts,
         weapon_parts,
+        sentinel_parts,
     )
     filter_items(
         warframe_name,
         weapon_name_category,
+        sentinel_and_companion_name,
         warframe_inventory,
         mastered_or_owned_warframes,
         mastered_or_owned_primaries,
@@ -96,6 +102,7 @@ if __name__ == "__main__":
         mastered_or_owned_melees,
         mastered_or_owned_amps,
         mastered_or_owned_arch_weapons,
+        mastered_or_owned_sentinels_and_companions,
         mastered_or_owned_others,
         unmastered_warframes,
         unmastered_primaries,
@@ -103,6 +110,7 @@ if __name__ == "__main__":
         unmastered_melees,
         unmastered_amps,
         unmastered_arch_weapons,
+        unmastered_sentinels_and_companions,
         unmastered_others,
         duplicate_prime_parts,
         mastered_prime_parts,
@@ -117,12 +125,14 @@ if __name__ == "__main__":
         "warframe_parts": warframe_parts,
         "archwing_parts": archwing_parts,
         "weapon_parts": weapon_parts,
+        "sentinel_parts": sentinel_parts,
         "mastered_or_owned_warframes": mastered_or_owned_warframes,
         "mastered_or_owned_primaries": mastered_or_owned_primaries,
         "mastered_or_owned_secondaries": mastered_or_owned_secondaries,
         "mastered_or_owned_melees": mastered_or_owned_melees,
         "mastered_or_owned_amps": mastered_or_owned_amps,
         "mastered_or_owned_arch_weapons": mastered_or_owned_arch_weapons,
+        "mastered_or_owned_sentinels_and_companions": mastered_or_owned_sentinels_and_companions,
         "mastered_or_owned_others": mastered_or_owned_others,
         "unmastered_warframes": unmastered_warframes,
         "unmastered_primaries": unmastered_primaries,
@@ -130,6 +140,7 @@ if __name__ == "__main__":
         "unmastered_melees": unmastered_melees,
         "unmastered_amps": unmastered_amps,
         "unmastered_arch_weapons": unmastered_arch_weapons,
+        "unmastered_sentinels_and_companions": unmastered_sentinels_and_companions,
         "unmastered_others": unmastered_others,
         "duplicate_prime_parts": duplicate_prime_parts,
         "mastered_prime_parts": mastered_prime_parts,

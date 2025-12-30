@@ -117,15 +117,17 @@ def _lookup_weapon_part_name(item_type):
                                     # Extract from the part type onwards
                                     relevant_part = part_base_name[idx:]
                                     part_formatted = _format_name(relevant_part)
-                                    return f"{weapon_name} {part_formatted}".strip()
+                                    result = f"{weapon_name} {part_formatted}".strip()
+                                    return _remove_duplicate_names(result)
 
                         # Fallback: just format the whole thing
                         part_formatted = _format_name(part_base_name)
-                        return f"{weapon_name} {part_formatted}".strip()
+                        result = f"{weapon_name} {part_formatted}".strip()
+                        return _remove_duplicate_names(result)
 
     # Fallback: just format the part name
     base_name = item_type.split("/")[-1]
-    return _format_name(base_name)
+    return _remove_duplicate_names(_format_name(base_name))
 
 
 def _lookup_warframe_part_name(item_type):
@@ -246,12 +248,45 @@ def _lookup_sentinel_part_name(item_type):
                             part_base_name = part_base_name[len(sentinel_base) :]
 
                         part_formatted = _format_name(part_base_name)
-                        return f"{sentinel_name} {part_formatted}".strip()
+                        result = f"{sentinel_name} {part_formatted}".strip()
+                        return _remove_duplicate_names(result)
 
     return None
 
 
 # ----------------------- Formatting Helpers -----------------------
+
+
+def _remove_duplicate_names(text):
+    """Remove duplicate name patterns like 'Bo Prime Bo Prime' -> 'Bo Prime'"""
+    # First, handle "Prime Prime" -> "Prime"
+    text = text.replace("Prime Prime", "Prime")
+    
+    # Then, handle weapon name duplication patterns like "Hikou Prime Hikou Stars" -> "Hikou Prime Stars"
+    # and "Glaive Prime Glaive Prime Disc" -> "Glaive Prime Disc"
+    # and "Bo Prime Bo Prime Ornament" -> "Bo Prime Ornament"
+    words = text.split()
+    if len(words) >= 3:
+        cleaned_words = []
+        i = 0
+        while i < len(words):
+            if i + 2 < len(words):
+                # Check if current word matches the word after "Prime"
+                # Pattern: "Name Prime Name ..."
+                if words[i + 1] == "Prime" and words[i] == words[i + 2]:
+                    # Found "Name Prime Name", add "Name Prime" and skip both the duplicate Name and any trailing "Prime" words
+                    cleaned_words.append(words[i])
+                    cleaned_words.append("Prime")
+                    i += 3  # Skip "Name Prime Name"
+                    # Also skip any trailing "Prime" words after the duplicate name
+                    while i < len(words) and words[i] == "Prime":
+                        i += 1
+                    continue
+            cleaned_words.append(words[i])
+            i += 1
+        text = " ".join(cleaned_words)
+    
+    return text
 
 
 def _format_name(name_str):
@@ -282,6 +317,8 @@ def clean_name(name_str):
     - Warframes/Powersuits: matches against warframe_warframes.json
     - Weapon parts: extracts from recipe data
     - Warframe/Archwing parts: extracts from recipe data
+    - Sentinels: matches against warframe_sentinels.json
+    - Sentinel parts: extracts from recipe data
     """
     lower_name = name_str.lower()
 
@@ -372,4 +409,5 @@ def clean_name(name_str):
 
     # Fallback to original formatting logic
     base_name = name_str.split("/")[-1]
-    return _format_name(base_name)
+    result = _format_name(base_name)
+    return _remove_duplicate_names(result)

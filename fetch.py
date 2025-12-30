@@ -1,4 +1,5 @@
 import json
+
 import settings
 from format import clean_name
 
@@ -26,6 +27,15 @@ def fetch_weapons(weapon_name_category):
                 "name": weapon["name"],
                 "category": weapon["productCategory"],
             }
+
+
+# Fetch all Sentinel data in the game
+def fetch_sentinels_and_companions(sentinel_and_companion_name):
+    with open("warframe_sentinels.json", encoding="utf-8") as sf:
+        json_data = json.load(sf)
+        for sentinel in json_data["ExportSentinels"]:
+            unique_name = sentinel["uniqueName"]
+            sentinel_and_companion_name[unique_name] = sentinel["name"]
 
 
 # Fetch all Warframe and Archwing Recipes in the game
@@ -196,6 +206,92 @@ def fetch_weapon_recipes(
                 }
 
 
+# Fetch all Sentinel and Companion Recipes in the game
+def fetch_sentinel_and_companion_recipes(
+    sentinel_and_companion_name, warframe_inventory, sentinel_parts
+):
+    with open("warframe_recipes.json", encoding="utf-8") as wr:
+        json_data = json.load(wr)
+
+        for recipe in json_data["ExportRecipes"]:
+            unique_name = recipe["uniqueName"]
+            result_type = recipe["resultType"]
+
+            is_sentinel = result_type in sentinel_and_companion_name
+
+            if not settings.INCLUDE_NON_PRIME_WARFRAMES_IN_SETS:
+                if "Prime" not in unique_name:
+                    continue
+            if not is_sentinel:
+                continue
+            if "Blueprint" not in unique_name:
+                continue
+
+            # Blueprint
+            bp_name = clean_name(unique_name)
+            bp_count = warframe_inventory.get(unique_name, 0)
+            bp_tuple = (bp_name, bp_count)
+
+            progress = 1 if bp_count >= 1 else 0
+
+            entry = {
+                "name": clean_name(sentinel_and_companion_name[result_type]),
+                "blueprint": bp_tuple,
+                "cerebrum": ("", 0),
+                "carapace": ("", 0),
+                "systems": ("", 0),
+            }
+
+            for ingredient in recipe.get("ingredients", []):
+                item_type = ingredient["ItemType"]
+                part_name = clean_name(item_type)
+
+                if not any(
+                    x in part_name
+                    for x in [
+                        "Cerebrum",
+                        "Carapace",
+                        "Systems",
+                    ]
+                ):
+                    continue
+
+                # Remove duplicate "Prime" if it appears twice
+                part_name = part_name.replace("Prime Prime", "Prime")
+
+                # Count both Blueprint and Component versions
+                blueprint_version = (
+                    item_type
+                    if item_type.endswith("Blueprint")
+                    else item_type + "Blueprint"
+                )
+                component_version = (
+                    item_type
+                    if not item_type.endswith("Blueprint")
+                    else item_type.replace("Blueprint", "Component")
+                )
+
+                count = warframe_inventory.get(item_type, 0)
+                count += warframe_inventory.get(blueprint_version, 0)
+                count += warframe_inventory.get(component_version, 0)
+
+                part_tuple = (part_name, count)
+
+                if count >= 1:
+                    progress += 1
+
+                # Sentinel parts
+                if "Cerebrum" in part_name:
+                    entry["cerebrum"] = part_tuple
+                elif "Carapace" in part_name:
+                    entry["carapace"] = part_tuple
+                elif "Systems" in part_name:
+                    entry["systems"] = part_tuple
+
+            if progress >= settings.WARFRAME_PROGRESS_FILTER:
+                sentinel_parts[unique_name] = entry
+
+
 # Fetch the inventory data.
 def fetch_inventory_data(warframe_inventory):
     with open("inventory.json") as f:
@@ -257,14 +353,17 @@ def fetch_items(
     warframe_name,
     archwing_name,
     weapon_name_category,
+    sentinel_and_companion_name,
     warframe_inventory,
     warframe_parts,
     archwing_parts,
     weapon_parts,
+    sentinel_parts,
 ):
     fetch_inventory_data(warframe_inventory)
     fetch_warframes(warframe_name, archwing_name)
     fetch_weapons(weapon_name_category)
+    fetch_sentinels_and_companions(sentinel_and_companion_name)
     fetch_warframe_and_archwing_recipes(
         warframe_name, archwing_name, warframe_inventory, warframe_parts, archwing_parts
     )
@@ -274,4 +373,7 @@ def fetch_items(
         weapon_parts,
         warframe_name,
         archwing_name,
+    )
+    fetch_sentinel_and_companion_recipes(
+        sentinel_and_companion_name, warframe_inventory, sentinel_parts
     )
