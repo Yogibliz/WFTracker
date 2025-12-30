@@ -29,6 +29,11 @@ SETS = [
         "func": "print_archwing_set_progress_as_table",
         "args": ("archwing_parts", "----- Prime Archwing Set Progress -----"),
     },
+    {
+        "label": "Print Sentinel and Companion Parts as Part of Set",
+        "func": "print_sentinel_set_progress_as_table",
+        "args": ("sentinel_parts", "----- Prime Sentinel Set Progress -----"),
+    }
 ]
 
 UNMASTERED_ITEMS = [
@@ -56,6 +61,11 @@ UNMASTERED_ITEMS = [
         "label": "Print Unmastered Arch Weapons",
         "func": "print_set_as_table",
         "args": ("unmastered_arch_weapons", "----- Unmastered Arch Weapons -----"),
+    },
+    {
+        "label": "Print Unmastered Sentinels & Companions",
+        "func": "print_set_as_table",
+        "args": ("unmastered_sentinels_and_companions", "----- Unmastered Sentinels & Companions -----"),
     },
     {
         "label": "Print Unmastered Amps",
@@ -89,6 +99,11 @@ MASTERED_ITEMS = [
         "label": "Print Mastered Arch Weapons",
         "func": "print_set_as_table",
         "args": ("mastered_or_owned_arch_weapons", "----- Mastered or Owned Arch Weapons -----"),
+    },
+    {
+        "label": "Print Mastered Sentinels & Companions",
+        "func": "print_set_as_table",
+        "args": ("mastered_or_owned_sentinels_and_companions", "----- Mastered or Owned Sentinels & Companions -----"),
     },
     {
         "label": "Print Mastered Amps",

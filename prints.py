@@ -114,6 +114,7 @@ def print_selection(index, menu_items, from_submenu=False):
             "print_warframe_set_progress_as_table": print_warframe_set_progress_as_table,
             "print_archwing_set_progress_as_table": print_archwing_set_progress_as_table,
             "print_weapon_set_progress_as_table": print_weapon_set_progress_as_table,
+            "print_sentinel_set_progress_as_table": print_sentinel_set_progress_as_table,
             "fetch_inventory_data": fetch_inventory_data,
             "settings_menu": settings.settings_menu,
         }
@@ -257,6 +258,38 @@ def print_weapon_set_progress_as_table(prime_weapon_set, title):
                 progress += 1
             amount += 1
             parts_str_list.append(f"{part_name}: {count}")
+
+        progress_str = f"Progress: {progress}/{amount}"
+        formatted_parts = ", ".join(parts_str_list)
+
+        table.add_row([entry["name"], formatted_parts, progress_str])
+    print(table)
+
+
+# For the prime_sentinel_sets.
+def print_sentinel_set_progress_as_table(sentinel_set, title):
+    table = PrettyTable(["Item", "Parts", "Progress"])
+    table.title = title
+    table.sortby = "Progress"
+    table.reversesort = True
+
+    for entry in sentinel_set.values():
+        # Use full sentinel name + "Blueprint" instead of just "Blueprint"
+        blueprint_name = f"{entry['name']} Blueprint"
+        parts_str_list = [f"{blueprint_name}: {entry['blueprint'][1]}"]
+        amount = 1
+        progress = 0
+
+        if entry["blueprint"][1] >= 1:
+            progress += 1
+
+        for part_key in ["cerebrum", "carapace", "systems"]:
+            part_name, count = entry[part_key]
+            if part_name:  # Only include if part_name is not empty
+                if count >= 1:
+                    progress += 1
+                amount += 1
+                parts_str_list.append(f"{part_name}: {count}")
 
         progress_str = f"Progress: {progress}/{amount}"
         formatted_parts = ", ".join(parts_str_list)
