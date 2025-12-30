@@ -265,6 +265,11 @@ def filter_items(
     unmastered_others,
     duplicate_prime_parts,
     mastered_prime_parts,
+    warframe_parts,
+    archwing_parts,
+    weapon_parts,
+    sentinel_parts,
+    sellable_prime_sets,
 ):
     filter_mastered_and_owned_gear(
         warframe_name,
@@ -318,3 +323,91 @@ def filter_items(
         mastered_or_owned_sentinels_and_companions,
         unmastered_sentinels_and_companions,
     )
+    filter_sellable_prime_sets(
+        warframe_parts,
+        archwing_parts,
+        weapon_parts,
+        sentinel_parts,
+        mastered_or_owned_warframes,
+        mastered_or_owned_primaries,
+        mastered_or_owned_secondaries,
+        mastered_or_owned_melees,
+        mastered_or_owned_amps,
+        mastered_or_owned_arch_weapons,
+        mastered_or_owned_sentinels_and_companions,
+        sellable_prime_sets,
+    )
+
+
+
+# Filter complete prime sets that are mastered and sellable
+def filter_sellable_prime_sets(
+    warframe_parts,
+    archwing_parts,
+    weapon_parts,
+    sentinel_parts,
+    mastered_or_owned_warframes,
+    mastered_or_owned_primaries,
+    mastered_or_owned_secondaries,
+    mastered_or_owned_melees,
+    mastered_or_owned_amps,
+    mastered_or_owned_arch_weapons,
+    mastered_or_owned_sentinels_and_companions,
+    sellable_prime_sets,
+):
+    """Find complete prime sets where all parts are owned and the item is mastered."""
+    
+    # Check warframe sets
+    for unique_name, entry in warframe_parts.items():
+        name = entry["name"]
+        if name in mastered_or_owned_warframes:
+            # Check if all parts are owned
+            if (entry["blueprint"][1] >= 1 and 
+                entry["neuroptics"][1] >= 1 and 
+                entry["chassis"][1] >= 1 and 
+                entry["systems"][1] >= 1):
+                sellable_prime_sets[name] = sellable_prime_sets.get(name, 0) + 1
+    
+    # Check archwing sets
+    for unique_name, entry in archwing_parts.items():
+        name = entry["name"]
+        if name in mastered_or_owned_warframes:
+            # Check if all parts are owned
+            if (entry["blueprint"][1] >= 1 and 
+                entry["harness"][1] >= 1 and 
+                entry["wings"][1] >= 1 and 
+                entry["systems"][1] >= 1):
+                sellable_prime_sets[name] = sellable_prime_sets.get(name, 0) + 1
+    
+    # Check weapon sets
+    for unique_name, entry in weapon_parts.items():
+        name = entry["name"]
+        # Check category to determine mastered status
+        is_mastered = False
+        if "Primary" in entry.get("category", ""):
+            is_mastered = name in mastered_or_owned_primaries
+        elif "Secondary" in entry.get("category", ""):
+            is_mastered = name in mastered_or_owned_secondaries
+        elif "Melee" in entry.get("category", ""):
+            is_mastered = name in mastered_or_owned_melees
+        elif "OperatorAmplifiers" in entry.get("category", ""):
+            is_mastered = name in mastered_or_owned_amps
+        elif "Arch" in entry.get("category", ""):
+            is_mastered = name in mastered_or_owned_arch_weapons
+        
+        if is_mastered:
+            # Check if all parts are owned
+            if all(count >= 1 for _, count in entry["parts"]):
+                sellable_prime_sets[name] = sellable_prime_sets.get(name, 0) + 1
+    
+    # Check sentinel sets
+    for unique_name, entry in sentinel_parts.items():
+        name = entry["name"]
+        if name in mastered_or_owned_sentinels_and_companions:
+            # Check if all parts are owned
+            if (entry["blueprint"][1] >= 1 and 
+                entry["cerebrum"][1] >= 1 and 
+                entry["carapace"][1] >= 1 and 
+                entry["systems"][1] >= 1):
+                sellable_prime_sets[name] = sellable_prime_sets.get(name, 0) + 1
+

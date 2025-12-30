@@ -115,6 +115,7 @@ def print_selection(index, menu_items, from_submenu=False):
             "print_archwing_set_progress_as_table": print_archwing_set_progress_as_table,
             "print_weapon_set_progress_as_table": print_weapon_set_progress_as_table,
             "print_sentinel_set_progress_as_table": print_sentinel_set_progress_as_table,
+            "print_sellable_prime_sets_as_table": print_sellable_prime_sets_as_table,
             "fetch_inventory_data": fetch_inventory_data,
             "settings_menu": settings.settings_menu,
         }
@@ -292,4 +293,16 @@ def print_sentinel_set_progress_as_table(sentinel_set, title):
             f"{progress}/4",
         ]
         table.add_row(row)
+    print(table)
+
+
+# For sellable prime sets
+def print_sellable_prime_sets_as_table(sellable_prime_sets, title):
+    table = PrettyTable(["Set Name", "Count"])
+    table.title = title
+    table.sortby = "Count"
+    table.reversesort = True
+
+    for name, count in sorted(sellable_prime_sets.items()):
+        table.add_row([name, count])
     print(table)

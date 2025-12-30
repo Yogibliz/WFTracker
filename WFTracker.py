@@ -49,6 +49,7 @@ warframe_parts = {}
 archwing_parts = {}
 weapon_parts = {}
 sentinel_parts = {}
+sellable_prime_sets = {}
 
 # ----------------------------------- Main -----------------------------------
 
@@ -114,6 +115,11 @@ if __name__ == "__main__":
         unmastered_others,
         duplicate_prime_parts,
         mastered_prime_parts,
+        warframe_parts,
+        archwing_parts,
+        weapon_parts,
+        sentinel_parts,
+        sellable_prime_sets,
     )
 
     # Create context dictionary for menu functions
@@ -126,6 +132,7 @@ if __name__ == "__main__":
         "archwing_parts": archwing_parts,
         "weapon_parts": weapon_parts,
         "sentinel_parts": sentinel_parts,
+        "sellable_prime_sets": sellable_prime_sets,
         "mastered_or_owned_warframes": mastered_or_owned_warframes,
         "mastered_or_owned_primaries": mastered_or_owned_primaries,
         "mastered_or_owned_secondaries": mastered_or_owned_secondaries,

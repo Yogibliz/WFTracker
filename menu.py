@@ -11,6 +11,11 @@ SELLABLE_ITEMS = [
         "func": "print_set_of_tuples_as_table",
         "args": ("duplicate_prime_parts", "----- Duplicate Prime Parts (All) -----"),
     },
+    {
+        "label": "Sellable Prime Sets",
+        "func": "print_set_of_tuples_as_table",
+        "args": ("sellable_prime_sets", "----- Sellable Prime Sets -----"),
+    }
 ]
 
 SETS = [
