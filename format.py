@@ -261,7 +261,7 @@ def _remove_duplicate_names(text):
     """Remove duplicate name patterns like 'Bo Prime Bo Prime' -> 'Bo Prime'"""
     # First, handle "Prime Prime" -> "Prime"
     text = text.replace("Prime Prime", "Prime")
-    
+
     # Then, handle weapon name duplication patterns like "Hikou Prime Hikou Stars" -> "Hikou Prime Stars"
     # and "Glaive Prime Glaive Prime Disc" -> "Glaive Prime Disc"
     # and "Bo Prime Bo Prime Ornament" -> "Bo Prime Ornament"
@@ -285,7 +285,7 @@ def _remove_duplicate_names(text):
             cleaned_words.append(words[i])
             i += 1
         text = " ".join(cleaned_words)
-    
+
     return text
 
 

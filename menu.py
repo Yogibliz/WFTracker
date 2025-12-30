@@ -15,7 +15,7 @@ SELLABLE_ITEMS = [
         "label": "Sellable Prime Sets",
         "func": "print_set_of_tuples_as_table",
         "args": ("sellable_prime_sets", "----- Sellable Prime Sets -----"),
-    }
+    },
 ]
 
 SETS = [
@@ -38,14 +38,17 @@ SETS = [
         "label": "Print Sentinel and Companion Parts as Part of Set",
         "func": "print_sentinel_set_progress_as_table",
         "args": ("sentinel_parts", "----- Prime Sentinel Set Progress -----"),
-    }
+    },
 ]
 
 UNMASTERED_ITEMS = [
     {
         "label": "Print Unmastered Warframes & Archwings",
         "func": "print_set_as_table",
-        "args": ("unmastered_warframes", "----- Unmastered Warframes & Archwings -----"),
+        "args": (
+            "unmastered_warframes",
+            "----- Unmastered Warframes & Archwings -----",
+        ),
     },
     {
         "label": "Print Unmastered Primary Weapons",
@@ -70,7 +73,10 @@ UNMASTERED_ITEMS = [
     {
         "label": "Print Unmastered Sentinels & Companions",
         "func": "print_set_as_table",
-        "args": ("unmastered_sentinels_and_companions", "----- Unmastered Sentinels & Companions -----"),
+        "args": (
+            "unmastered_sentinels_and_companions",
+            "----- Unmastered Sentinels & Companions -----",
+        ),
     },
     {
         "label": "Print Unmastered Amps",
@@ -83,32 +89,50 @@ MASTERED_ITEMS = [
     {
         "label": "Print Mastered Warframes & Archwings",
         "func": "print_set_as_table",
-        "args": ("mastered_or_owned_warframes", "----- Mastered or Owned Warframes & Archwings -----"),
+        "args": (
+            "mastered_or_owned_warframes",
+            "----- Mastered or Owned Warframes & Archwings -----",
+        ),
     },
     {
         "label": "Print Mastered Primary Weapons",
         "func": "print_set_as_table",
-        "args": ("mastered_or_owned_primaries", "----- Mastered or Owned Primary Weapons -----"),
+        "args": (
+            "mastered_or_owned_primaries",
+            "----- Mastered or Owned Primary Weapons -----",
+        ),
     },
     {
         "label": "Print Mastered Secondary Weapons",
         "func": "print_set_as_table",
-        "args": ("mastered_or_owned_secondaries", "----- Mastered or Owned Secondary Weapons -----"),
+        "args": (
+            "mastered_or_owned_secondaries",
+            "----- Mastered or Owned Secondary Weapons -----",
+        ),
     },
     {
         "label": "Print Mastered Melee Weapons",
         "func": "print_set_as_table",
-        "args": ("mastered_or_owned_melees", "----- Mastered or Owned Melee Weapons -----"),
+        "args": (
+            "mastered_or_owned_melees",
+            "----- Mastered or Owned Melee Weapons -----",
+        ),
     },
     {
         "label": "Print Mastered Arch Weapons",
         "func": "print_set_as_table",
-        "args": ("mastered_or_owned_arch_weapons", "----- Mastered or Owned Arch Weapons -----"),
+        "args": (
+            "mastered_or_owned_arch_weapons",
+            "----- Mastered or Owned Arch Weapons -----",
+        ),
     },
     {
         "label": "Print Mastered Sentinels & Companions",
         "func": "print_set_as_table",
-        "args": ("mastered_or_owned_sentinels_and_companions", "----- Mastered or Owned Sentinels & Companions -----"),
+        "args": (
+            "mastered_or_owned_sentinels_and_companions",
+            "----- Mastered or Owned Sentinels & Companions -----",
+        ),
     },
     {
         "label": "Print Mastered Amps",
@@ -127,11 +151,11 @@ OPTIONS = [
         "label": "Settings Menu",
         "func": "settings_menu",
         "args": (),
-    }
+    },
 ]
 
 WARFRAME_MARKET = [
-    {   # Will give option to choose between duplicate parts and excess mastered parts etc...
+    {  # Will give option to choose between duplicate parts and excess mastered parts etc...
         "label": "Post sell orders to Warframe Market (for sellable items)",
         "func": "post_sell_orders_to_warframe_market",
         "args": (),
@@ -162,7 +186,7 @@ START_MENU = [
     {
         "label": "Warframe Market Options",
         "func": "go_to_warframe_market_menu",
-        "args": (),  
+        "args": (),
     },
     {
         "label": "Options",
