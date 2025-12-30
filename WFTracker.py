@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
-from prints import main_menu
-from fetch import fetch_items
-from filter import filter_items
 
 import json_fetcher
+from fetch import fetch_items
+from filter import filter_items
+from prints import main_menu
 
 # ----------------------- Data Structures -----------------------
 
@@ -77,9 +77,37 @@ if __name__ == "__main__":
     if not args.no_fetch:
         # Fetch and Filter everything
         json_fetcher.fetch_warframe_json_data()
-    fetch_items(warframe_name, archwing_name, weapon_name_category, warframe_inventory, warframe_parts, archwing_parts, weapon_parts)
-    filter_items(warframe_name, weapon_name_category, warframe_inventory, mastered_or_owned_warframes, mastered_or_owned_primaries, mastered_or_owned_secondaries, mastered_or_owned_melees, mastered_or_owned_amps, mastered_or_owned_arch_weapons, mastered_or_owned_others, unmastered_warframes, unmastered_primaries, unmastered_secondaries, unmastered_melees, unmastered_amps, unmastered_arch_weapons, unmastered_others, duplicate_prime_parts, mastered_prime_parts)
-    
+    fetch_items(
+        warframe_name,
+        archwing_name,
+        weapon_name_category,
+        warframe_inventory,
+        warframe_parts,
+        archwing_parts,
+        weapon_parts,
+    )
+    filter_items(
+        warframe_name,
+        weapon_name_category,
+        warframe_inventory,
+        mastered_or_owned_warframes,
+        mastered_or_owned_primaries,
+        mastered_or_owned_secondaries,
+        mastered_or_owned_melees,
+        mastered_or_owned_amps,
+        mastered_or_owned_arch_weapons,
+        mastered_or_owned_others,
+        unmastered_warframes,
+        unmastered_primaries,
+        unmastered_secondaries,
+        unmastered_melees,
+        unmastered_amps,
+        unmastered_arch_weapons,
+        unmastered_others,
+        duplicate_prime_parts,
+        mastered_prime_parts,
+    )
+
     # Create context dictionary for menu functions
     context = {
         "warframe_name": warframe_name,
@@ -106,7 +134,7 @@ if __name__ == "__main__":
         "duplicate_prime_parts": duplicate_prime_parts,
         "mastered_prime_parts": mastered_prime_parts,
     }
-    
+
     main_menu(context)
 
 # ----------------------------------- END OF FILE -----------------------------------

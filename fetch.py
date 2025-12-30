@@ -1,8 +1,10 @@
 import json
-import settings
 import re
 
+import settings
+
 # ----------------------- Formatting Helpers -----------------------
+
 
 # Helper to clean up uniqueName to name mapping
 def clean_name(name_str):
@@ -23,7 +25,9 @@ def clean_name(name_str):
 
     return cleaned.strip()
 
+
 # ----------------------- Fetching from API:s -----------------------
+
 
 # Fetch all currently available warframes in the game
 def fetch_warframes(warframe_name, archwing_name):
@@ -49,7 +53,9 @@ def fetch_weapons(weapon_name_category):
 
 
 # Fetch all Warframe and Archwing Recipes in the game
-def fetch_warframe_and_archwing_recipes(warframe_name, archwing_name, warframe_inventory, warframe_parts, archwing_parts):
+def fetch_warframe_and_archwing_recipes(
+    warframe_name, archwing_name, warframe_inventory, warframe_parts, archwing_parts
+):
     with open("warframe_recipes.json", encoding="utf-8") as wr:
         json_data = json.load(wr)
 
@@ -102,13 +108,21 @@ def fetch_warframe_and_archwing_recipes(warframe_name, archwing_name, warframe_i
 
                 # Count both Blueprint and Component versions
                 # e.g., CalibianPrimeSystemsBlueprint + CalibianPrimeSystemsComponent
-                blueprint_version = item_type if item_type.endswith("Blueprint") else item_type + "Blueprint"
-                component_version = item_type if not item_type.endswith("Blueprint") else item_type.replace("Blueprint", "Component")
-                
+                blueprint_version = (
+                    item_type
+                    if item_type.endswith("Blueprint")
+                    else item_type + "Blueprint"
+                )
+                component_version = (
+                    item_type
+                    if not item_type.endswith("Blueprint")
+                    else item_type.replace("Blueprint", "Component")
+                )
+
                 count = warframe_inventory.get(item_type, 0)
                 count += warframe_inventory.get(blueprint_version, 0)
                 count += warframe_inventory.get(component_version, 0)
-                
+
                 part_tuple = (part_name, count)
 
                 if count >= 1:
@@ -140,7 +154,9 @@ def fetch_warframe_and_archwing_recipes(warframe_name, archwing_name, warframe_i
 
 
 # Fetch all Weapon Recipes in the game
-def fetch_weapon_recipes(weapon_name_category, warframe_inventory, weapon_parts, warframe_name, archwing_name):
+def fetch_weapon_recipes(
+    weapon_name_category, warframe_inventory, weapon_parts, warframe_name, archwing_name
+):
     with open("warframe_recipes.json", encoding="utf-8") as wr:
         json_data = json.load(wr)
 
@@ -176,9 +192,17 @@ def fetch_weapon_recipes(weapon_name_category, warframe_inventory, weapon_parts,
                         continue
 
                 # Count both Blueprint and Component versions
-                blueprint_version = item_type if item_type.endswith("Blueprint") else item_type + "Blueprint"
-                component_version = item_type if not item_type.endswith("Blueprint") else item_type.replace("Blueprint", "Component")
-                
+                blueprint_version = (
+                    item_type
+                    if item_type.endswith("Blueprint")
+                    else item_type + "Blueprint"
+                )
+                component_version = (
+                    item_type
+                    if not item_type.endswith("Blueprint")
+                    else item_type.replace("Blueprint", "Component")
+                )
+
                 count = warframe_inventory.get(item_type, 0)
                 count += warframe_inventory.get(blueprint_version, 0)
                 count += warframe_inventory.get(component_version, 0)
@@ -252,9 +276,25 @@ def fetch_inventory_data(warframe_inventory):
 
 
 # Fetch everything in correct order, helper for main
-def fetch_items(warframe_name, archwing_name, weapon_name_category, warframe_inventory, warframe_parts, archwing_parts, weapon_parts):
+def fetch_items(
+    warframe_name,
+    archwing_name,
+    weapon_name_category,
+    warframe_inventory,
+    warframe_parts,
+    archwing_parts,
+    weapon_parts,
+):
     fetch_inventory_data(warframe_inventory)
     fetch_warframes(warframe_name, archwing_name)
     fetch_weapons(weapon_name_category)
-    fetch_warframe_and_archwing_recipes(warframe_name, archwing_name, warframe_inventory, warframe_parts, archwing_parts)
-    fetch_weapon_recipes(weapon_name_category, warframe_inventory, weapon_parts, warframe_name, archwing_name)
+    fetch_warframe_and_archwing_recipes(
+        warframe_name, archwing_name, warframe_inventory, warframe_parts, archwing_parts
+    )
+    fetch_weapon_recipes(
+        weapon_name_category,
+        warframe_inventory,
+        weapon_parts,
+        warframe_name,
+        archwing_name,
+    )

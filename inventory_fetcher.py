@@ -175,7 +175,7 @@ def get_nonce_linux():
                                 acc_id_data = chunk[acc_id_start : acc_id_start + 24]
                                 acc_id = acc_id_data.decode("utf-8", errors="ignore")
 
-                                full_auth = f"?accountId={acc_id}&nonce={nonce}" 
+                                full_auth = f"?accountId={acc_id}&nonce={nonce}"
                                 return full_auth
 
                             # Find next occurrence in the same chunk
@@ -220,7 +220,6 @@ def fetch_and_save_inventory():
         filename = "inventory.json"
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
-
 
     except requests.exceptions.HTTPError as e:
         print(f"HTTP Error: {e}")

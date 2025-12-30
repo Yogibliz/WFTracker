@@ -178,7 +178,7 @@ def settings_menu():
             update_setting(
                 "WARFRAME_PROGRESS_FILTER", int(filter_answer["warframe_filter"])
             )
-    
+
     elif choice == "RESTORE_DEFAULTS":
         confirm_questions = [
             inquirer.Confirm(

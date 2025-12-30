@@ -1,9 +1,11 @@
 import os
 import time
-from fetch import fetch_inventory_data
+
 from prettytable import PrettyTable
-from menu import START_MENU, SUBMENU_MAPPING
+
 import settings
+from fetch import fetch_inventory_data
+from menu import START_MENU, SUBMENU_MAPPING
 
 # ----------------------- Global Context -----------------------
 # This dictionary holds all the data structures needed by menu functions
@@ -11,16 +13,19 @@ _context = {}
 
 # ----------------------- Formatting Helper -----------------------
 
+
 # Helper to format if part more than 1 or not.
 def has_part(count):
     return "✓" if count >= 1 else "✗"
 
+
 # ----------------------- Printing -----------------------
+
 
 # Display a generic menu from a menu items list
 def display_menu(menu_items, title, allow_back=False):
     """Generic menu display function.
-    
+
     Returns:
         Tuple of (selected_option, selected_item) or (None, None) if going back
     """
@@ -38,16 +43,20 @@ def display_menu(menu_items, title, allow_back=False):
         os.system("cls" if os.name == "nt" else "clear")
         print(menu)
 
-        user_input = input("What do you want to do? (q to quit" + (", b to go back" if allow_back else "") + "): ")
+        user_input = input(
+            "What do you want to do? (q to quit"
+            + (", b to go back" if allow_back else "")
+            + "): "
+        )
 
         if user_input == "q":
             exit()
-        
+
         if allow_back and user_input == "b":
             return None, None
 
         try:
-            selected_option = int(user_input)-1
+            selected_option = int(user_input) - 1
         except ValueError:
             continue
 
@@ -59,9 +68,9 @@ def main_menu(context):
     """Main menu with access to all data through context."""
     global _context
     _context = context
-    
+
     selected_option, selection = display_menu(START_MENU, "----- Main Menu -----")
-    
+
     # Check if this is a submenu navigation function
     func_name = selection["func"]
     if func_name in SUBMENU_MAPPING:
@@ -74,13 +83,15 @@ def main_menu(context):
 def submenu(menu_items, title):
     """Display a submenu and handle selection."""
     while True:
-        selected_option, _ = display_menu(menu_items, f"----- {title} -----", allow_back=True)
-        
+        selected_option, _ = display_menu(
+            menu_items, f"----- {title} -----", allow_back=True
+        )
+
         # User pressed 'b' to go back to main menu
         if selected_option is None:
             main_menu(_context)
             return
-        
+
         print_selection(selected_option, menu_items, from_submenu=True)
 
 
@@ -91,21 +102,23 @@ def print_selection(index, menu_items, from_submenu=False):
     selection = menu_items[index]
 
     func_name = selection["func"]
-    
+
     # Build the namespace with context values and functions
     local_namespace = _context.copy()
-    
+
     # Add all the print functions and utility functions to the namespace
-    local_namespace.update({
-        "print_set_of_tuples_as_table": print_set_of_tuples_as_table,
-        "print_set_as_table": print_set_as_table,
-        "print_warframe_set_progress_as_table": print_warframe_set_progress_as_table,
-        "print_archwing_set_progress_as_table": print_archwing_set_progress_as_table,
-        "print_weapon_set_progress_as_table": print_weapon_set_progress_as_table,
-        "fetch_inventory_data": fetch_inventory_data,
-        "settings_menu": settings.settings_menu,
-    })
-    
+    local_namespace.update(
+        {
+            "print_set_of_tuples_as_table": print_set_of_tuples_as_table,
+            "print_set_as_table": print_set_as_table,
+            "print_warframe_set_progress_as_table": print_warframe_set_progress_as_table,
+            "print_archwing_set_progress_as_table": print_archwing_set_progress_as_table,
+            "print_weapon_set_progress_as_table": print_weapon_set_progress_as_table,
+            "fetch_inventory_data": fetch_inventory_data,
+            "settings_menu": settings.settings_menu,
+        }
+    )
+
     if func_name in local_namespace:
         func_to_call = local_namespace[func_name]
         # Call function with variable arguments
