@@ -4,7 +4,6 @@ from fetch import clean_name
 
 # ----------------------- Filter API-data into categories -----------------------
 
-
 # Get which items have been mastered thus far.
 def filter_mastered_and_owned_gear(
     warframe_name,

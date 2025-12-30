@@ -67,6 +67,8 @@ def fetch_warframe_json_data():
             "ExportWarframes_en.json": "warframe_warframes.json",
             "ExportWeapons_en.json": "warframe_weapons.json",
             "ExportRecipes_en.json": "warframe_recipes.json",
+            "ExportSentinels_en.json": "warframe_sentinels.json",
+            "ExportRelicArcane_en.json": "warframe_relic_arcanes.json",
         }
 
         # 3. Fetch files
