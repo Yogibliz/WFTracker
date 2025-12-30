@@ -1,0 +1,4 @@
+inquirer==3.4.1
+prettytable==3.17.0
+pymem==1.14.0
+Requests==2.32.5
