@@ -124,7 +124,6 @@ def settings_menu():
     choice = answers["setting_choice"]
 
     if choice == "INCLUDE_NON_PRIME_WEAPONS_IN_SETS":
-        current = _loaded_settings["INCLUDE_NON_PRIME_WEAPONS_IN_SETS"]
         toggle_questions = [
             inquirer.Confirm(
                 "toggle_value",
@@ -138,7 +137,6 @@ def settings_menu():
             update_setting("INCLUDE_NON_PRIME_WEAPONS_IN_SETS", new_value)
 
     elif choice == "INCLUDE_NON_PRIME_WARFRAMES_IN_SETS":
-        current = _loaded_settings["INCLUDE_NON_PRIME_WARFRAMES_IN_SETS"]
         toggle_questions = [
             inquirer.Confirm(
                 "toggle_value",
