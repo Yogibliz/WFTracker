@@ -3,7 +3,44 @@ import json
 import settings
 from format import clean_name
 
+# ----------------------- Helper Functions -----------------------
+
+
+def get_part_counts(item_type, warframe_inventory):
+    """
+    Get blueprint and component counts for an ingredient.
+    
+    Handles:
+    - Warframe/Sentinel parts: SystemsComponent/SystemsBlueprint
+    - Weapon parts: BarrelComponent/Barrel, ReceiverComponent/Receiver, etc.
+    
+    Returns: (blueprint_count, component_count)
+    """
+    # Normalize to base name (remove Blueprint or Component suffix)
+    if item_type.endswith("Blueprint"):
+        base = item_type[:-len("Blueprint")]
+    elif item_type.endswith("Component"):
+        base = item_type[:-len("Component")]
+    else:
+        base = item_type
+    
+    # Look for both Blueprint and Component versions
+    blueprint_version = base + "Blueprint"
+    component_version = base + "Component"
+    
+    # Also try the item as-is (for weapon parts that don't have Blueprint/Component variants)
+    bp_count = warframe_inventory.get(blueprint_version, 0)
+    comp_count = warframe_inventory.get(component_version, 0)
+    
+    # If we found neither, try the base name itself (for weapon parts like "Barrel" instead of "BarrelComponent")
+    if bp_count == 0 and comp_count == 0:
+        comp_count = warframe_inventory.get(base, 0)
+    
+    return bp_count, comp_count
+
+
 # ----------------------- Fetching from API:s -----------------------
+
 
 
 # Fetch all currently available warframes in the game
@@ -92,23 +129,8 @@ def fetch_warframe_and_archwing_recipes(
                 ):
                     continue
 
-                # Count both Blueprint and Component versions
-                if item_type.endswith("Blueprint"):
-                    blueprint_version = item_type
-                    component_version = item_type.replace("Blueprint", "Component")
-                else:
-                    blueprint_version = item_type + "Blueprint"
-                    component_version = item_type
-                    # Also check for base name + "Blueprint" (e.g., SystemsBlueprint for Systems Component)
-                    base_blueprint = item_type.replace("Component", "Blueprint")
-
-                bp_count = warframe_inventory.get(blueprint_version, 0)
-                comp_count = warframe_inventory.get(component_version, 0)
-                
-                # If we didn't find ComponentBlueprint, try the base blueprint variant
-                if bp_count == 0 and not item_type.endswith("Blueprint"):
-                    bp_count = warframe_inventory.get(base_blueprint, 0)
-                
+                # Get both blueprint and component counts
+                bp_count, comp_count = get_part_counts(item_type, warframe_inventory)
                 total_count = bp_count + comp_count
 
                 part_tuple = (part_name, bp_count, comp_count)
@@ -175,27 +197,18 @@ def fetch_weapon_recipes(
                 item_type = ingredient["ItemType"]
                 part_name = clean_name(item_type)
 
+                # Skip resources like OrokinCell, Plastids, etc.
+                # Resources are in MiscItems folder and have common resource names
+                if "MiscItems" in item_type:
+                    # This is a resource from MiscItems, skip it
+                    continue
+
                 if not settings.INCLUDE_NON_PRIME_WEAPONS_IN_SETS:
                     if "Prime" not in part_name:
                         continue
 
                 # Count both Blueprint and Component versions
-                if item_type.endswith("Blueprint"):
-                    blueprint_version = item_type
-                    component_version = item_type.replace("Blueprint", "Component")
-                else:
-                    blueprint_version = item_type + "Blueprint"
-                    component_version = item_type
-                    # Also check for base name + "Blueprint" (e.g., SystemsBlueprint for Systems Component)
-                    base_blueprint = item_type.replace("Component", "Blueprint")
-
-                bp_count = warframe_inventory.get(blueprint_version, 0)
-                comp_count = warframe_inventory.get(component_version, 0)
-                
-                # If we didn't find ComponentBlueprint, try the base blueprint variant
-                if bp_count == 0 and not item_type.endswith("Blueprint"):
-                    bp_count = warframe_inventory.get(base_blueprint, 0)
-                
+                bp_count, comp_count = get_part_counts(item_type, warframe_inventory)
                 total_count = bp_count + comp_count
 
                 # Include all parts, even those with 0 count
@@ -264,29 +277,8 @@ def fetch_sentinel_and_companion_recipes(
                 # Remove duplicate "Prime" if it appears twice
                 part_name = part_name.replace("Prime Prime", "Prime")
 
-                # Count both Blueprint and Component versions
-                # Count both Blueprint and Component versions
-                # Handle two cases:
-                # 1. ingredient is "ComponentBlueprint" -> look for both Blueprint and Component
-                # 2. ingredient is "Component" -> look for Component and ComponentBlueprint, 
-                #    but also check for just "Blueprint" (e.g., SystemsBlueprint for SystemsComponent)
-                if item_type.endswith("Blueprint"):
-                    blueprint_version = item_type
-                    component_version = item_type.replace("Blueprint", "Component")
-                else:
-                    # Item is a Component - try multiple blueprint variants
-                    blueprint_version = item_type + "Blueprint"
-                    component_version = item_type
-                    # Also check for base name + "Blueprint" (e.g., SystemsBlueprint for Systems Component)
-                    base_blueprint = item_type.replace("Component", "Blueprint")
-
-                bp_count = warframe_inventory.get(blueprint_version, 0)
-                comp_count = warframe_inventory.get(component_version, 0)
-                
-                # If we didn't find ComponentBlueprint, try the base blueprint variant
-                if bp_count == 0 and not item_type.endswith("Blueprint"):
-                    bp_count = warframe_inventory.get(base_blueprint, 0)
-                
+                # Get both blueprint and component counts
+                bp_count, comp_count = get_part_counts(item_type, warframe_inventory)
                 total_count = bp_count + comp_count
 
                 part_tuple = (part_name, bp_count, comp_count)

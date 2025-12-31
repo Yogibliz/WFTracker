@@ -8,7 +8,7 @@ SETTINGS_FILE = Path(__file__).parent / "settings.txt"
 
 # Default settings
 DEFAULTS = {
-    "WEAPON_PROGRESS_FILTER": 1,  # 0–? (depends on weapon parts)
+    "WEAPON_PROGRESS_FILTER": 2,  # 0–? (depends on weapon parts)
     "WARFRAME_PROGRESS_FILTER": 1,  # 0–4
     "INCLUDE_NON_PRIME_WEAPONS_IN_SETS": 0,  # 0 = No | 1 = Yes
     "INCLUDE_NON_PRIME_WARFRAMES_IN_SETS": 0,  # 0 = No | 1 = Yes
