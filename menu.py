@@ -27,7 +27,10 @@ SETS = [
     {
         "label": "Print Warframe Parts as Part of Set",
         "func": "print_warframe_set_progress_as_table",
-        "args": ("warframe_parts", "----- Prime Warframes Set Progress -----"),
+        "args": (
+            "warframe_parts",
+            "----- Prime Warframes Set Progress (Built items) -----",
+        ),
     },
     {
         "label": "Print Archwing Parts as Part of Set",

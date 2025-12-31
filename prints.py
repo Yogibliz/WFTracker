@@ -14,9 +14,15 @@ _context = {}
 # ----------------------- Formatting Helper -----------------------
 
 
-# Helper to format if part more than 1 or not.
-def has_part(count):
-    return "✓" if count >= 1 else "✗"
+# Helper to format if part is owned and built status
+# Returns: ✓ for built component, - for blueprint only, ✗ for not owned
+def has_part(bp_count, comp_count):
+    if comp_count >= 1:
+        return "✓"  # Has built component
+    elif bp_count >= 1:
+        return "-"  # Has blueprint but not built
+    else:
+        return "✗"  # Not owned
 
 
 # ----------------------- Printing -----------------------
@@ -189,19 +195,29 @@ def print_warframe_set_progress_as_table(prime_warframe_set, title):
 
     # Sort by name
     for entry in prime_warframe_set.values():
-        bp = entry["blueprint"][1]
-        neu = entry["neuroptics"][1]
-        cha = entry["chassis"][1]
-        sys = entry["systems"][1]
+        bp_bp, bp_comp = entry["blueprint"][1], entry["blueprint"][2]
+        neu_bp, neu_comp = entry["neuroptics"][1], entry["neuroptics"][2]
+        cha_bp, cha_comp = entry["chassis"][1], entry["chassis"][2]
+        sys_bp, sys_comp = entry["systems"][1], entry["systems"][2]
 
-        progress = sum(count >= 1 for count in (bp, neu, cha, sys))
+        # Add 1 to progress for each part owned (either built or blueprint)
+        progress = sum(
+            1
+            for counts in [
+                (bp_bp, bp_comp),
+                (neu_bp, neu_comp),
+                (cha_bp, cha_comp),
+                (sys_bp, sys_comp),
+            ]
+            if counts[0] >= 1 or counts[1] >= 1
+        )
 
         row = [
             entry["name"],
-            has_part(bp),
-            has_part(neu),
-            has_part(cha),
-            has_part(sys),
+            has_part(bp_bp, bp_comp),
+            has_part(neu_bp, neu_comp),
+            has_part(cha_bp, cha_comp),
+            has_part(sys_bp, sys_comp),
             f"{progress}/4",
         ]
         table.add_row(row)
@@ -218,19 +234,29 @@ def print_archwing_set_progress_as_table(archwing_set, title):
     table.reversesort = True
 
     for entry in archwing_set.values():
-        bp = entry["blueprint"][1]
-        har = entry["harness"][1]
-        wing = entry["wings"][1]
-        sys = entry["systems"][1]
+        bp_bp, bp_comp = entry["blueprint"][1], entry["blueprint"][2]
+        har_bp, har_comp = entry["harness"][1], entry["harness"][2]
+        wing_bp, wing_comp = entry["wings"][1], entry["wings"][2]
+        sys_bp, sys_comp = entry["systems"][1], entry["systems"][2]
 
-        progress = sum(count >= 1 for count in (bp, har, wing, sys))
+        # Add 1 to progress for each part owned (either built or blueprint)
+        progress = sum(
+            1
+            for counts in [
+                (bp_bp, bp_comp),
+                (har_bp, har_comp),
+                (wing_bp, wing_comp),
+                (sys_bp, sys_comp),
+            ]
+            if counts[0] >= 1 or counts[1] >= 1
+        )
 
         row = [
             entry["name"],
-            has_part(bp),
-            has_part(har),
-            has_part(wing),
-            has_part(sys),
+            has_part(bp_bp, bp_comp),
+            has_part(har_bp, har_comp),
+            has_part(wing_bp, wing_comp),
+            has_part(sys_bp, sys_comp),
             f"{progress}/4",
         ]
         table.add_row(row)
@@ -254,11 +280,11 @@ def print_weapon_set_progress_as_table(prime_weapon_set, title):
         if entry["blueprint"][1] >= 1:
             progress += 1
 
-        for part_name, count in entry["parts"]:
-            if count >= 1:
+        for part_name, bp_count, comp_count in entry["parts"]:
+            if comp_count >= 1 or bp_count >= 1:
                 progress += 1
             amount += 1
-            parts_str_list.append(f"{part_name}: {count}")
+            parts_str_list.append(f"{part_name}: {comp_count + bp_count}")
 
         progress_str = f"Progress: {progress}/{amount}"
         formatted_parts = ", ".join(parts_str_list)
@@ -277,19 +303,29 @@ def print_sentinel_set_progress_as_table(sentinel_set, title):
     table.reversesort = True
 
     for entry in sentinel_set.values():
-        bp = entry["blueprint"][1]
-        cer = entry["cerebrum"][1]
-        car = entry["carapace"][1]
-        sys = entry["systems"][1]
+        bp_bp, bp_comp = entry["blueprint"][1], entry["blueprint"][2]
+        cer_bp, cer_comp = entry["cerebrum"][1], entry["cerebrum"][2]
+        car_bp, car_comp = entry["carapace"][1], entry["carapace"][2]
+        sys_bp, sys_comp = entry["systems"][1], entry["systems"][2]
 
-        progress = sum(count >= 1 for count in (bp, cer, car, sys))
+        # Add 1 to progress for each part owned (either built or blueprint)
+        progress = sum(
+            1
+            for counts in [
+                (bp_bp, bp_comp),
+                (cer_bp, cer_comp),
+                (car_bp, car_comp),
+                (sys_bp, sys_comp),
+            ]
+            if counts[0] >= 1 or counts[1] >= 1
+        )
 
         row = [
             entry["name"],
-            has_part(bp),
-            has_part(cer),
-            has_part(car),
-            has_part(sys),
+            has_part(bp_bp, bp_comp),
+            has_part(cer_bp, cer_comp),
+            has_part(car_bp, car_comp),
+            has_part(sys_bp, sys_comp),
             f"{progress}/4",
         ]
         table.add_row(row)

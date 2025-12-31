@@ -4,6 +4,7 @@ from fetch import clean_name
 
 # ----------------------- Filter API-data into categories -----------------------
 
+
 # Get which items have been mastered thus far.
 def filter_mastered_and_owned_gear(
     warframe_name,
@@ -31,7 +32,9 @@ def filter_mastered_and_owned_gear(
 
             # Filter Mastered Sentinels and Companions
             if item_path in sentinel_and_companion_name:
-                mastered_or_owned_sentinels_and_companions.add(clean_name(sentinel_and_companion_name[item_path]))
+                mastered_or_owned_sentinels_and_companions.add(
+                    clean_name(sentinel_and_companion_name[item_path])
+                )
 
             # Filter Mastered Weapons
             if item_path in weapon_name_category:
@@ -339,7 +342,6 @@ def filter_items(
     )
 
 
-
 # Filter complete prime sets that are mastered and sellable
 def filter_sellable_prime_sets(
     warframe_parts,
@@ -356,29 +358,33 @@ def filter_sellable_prime_sets(
     sellable_prime_sets,
 ):
     """Find complete prime sets where all parts are owned and the item is mastered."""
-    
+
     # Check warframe sets
     for unique_name, entry in warframe_parts.items():
         name = entry["name"]
         if name in mastered_or_owned_warframes:
-            # Check if all parts are owned
-            if (entry["blueprint"][1] >= 1 and 
-                entry["neuroptics"][1] >= 1 and 
-                entry["chassis"][1] >= 1 and 
-                entry["systems"][1] >= 1):
+            # Check if all parts are owned (blueprint or component)
+            if (
+                entry["blueprint"][1] >= 1
+                and (entry["neuroptics"][1] >= 1 or entry["neuroptics"][2] >= 1)
+                and (entry["chassis"][1] >= 1 or entry["chassis"][2] >= 1)
+                and (entry["systems"][1] >= 1 or entry["systems"][2] >= 1)
+            ):
                 sellable_prime_sets[name] = sellable_prime_sets.get(name, 0) + 1
-    
+
     # Check archwing sets
     for unique_name, entry in archwing_parts.items():
         name = entry["name"]
         if name in mastered_or_owned_warframes:
-            # Check if all parts are owned
-            if (entry["blueprint"][1] >= 1 and 
-                entry["harness"][1] >= 1 and 
-                entry["wings"][1] >= 1 and 
-                entry["systems"][1] >= 1):
+            # Check if all parts are owned (blueprint or component)
+            if (
+                entry["blueprint"][1] >= 1
+                and (entry["harness"][1] >= 1 or entry["harness"][2] >= 1)
+                and (entry["wings"][1] >= 1 or entry["wings"][2] >= 1)
+                and (entry["systems"][1] >= 1 or entry["systems"][2] >= 1)
+            ):
                 sellable_prime_sets[name] = sellable_prime_sets.get(name, 0) + 1
-    
+
     # Check weapon sets
     for unique_name, entry in weapon_parts.items():
         name = entry["name"]
@@ -394,20 +400,24 @@ def filter_sellable_prime_sets(
             is_mastered = name in mastered_or_owned_amps
         elif "Arch" in entry.get("category", ""):
             is_mastered = name in mastered_or_owned_arch_weapons
-        
+
         if is_mastered:
-            # Check if all parts are owned
-            if all(count >= 1 for _, count in entry["parts"]):
+            # Check if all parts are owned (blueprint or component)
+            if all(
+                (bp_count >= 1 or comp_count >= 1)
+                for _, bp_count, comp_count in entry["parts"]
+            ):
                 sellable_prime_sets[name] = sellable_prime_sets.get(name, 0) + 1
-    
+
     # Check sentinel sets
     for unique_name, entry in sentinel_parts.items():
         name = entry["name"]
         if name in mastered_or_owned_sentinels_and_companions:
-            # Check if all parts are owned
-            if (entry["blueprint"][1] >= 1 and 
-                entry["cerebrum"][1] >= 1 and 
-                entry["carapace"][1] >= 1 and 
-                entry["systems"][1] >= 1):
+            # Check if all parts are owned (blueprint or component)
+            if (
+                entry["blueprint"][1] >= 1
+                and (entry["cerebrum"][1] >= 1 or entry["cerebrum"][2] >= 1)
+                and (entry["carapace"][1] >= 1 or entry["carapace"][2] >= 1)
+                and (entry["systems"][1] >= 1 or entry["systems"][2] >= 1)
+            ):
                 sellable_prime_sets[name] = sellable_prime_sets.get(name, 0) + 1
-
