@@ -312,6 +312,8 @@ def fetch_inventory_data(warframe_inventory):
             "projection" in lower_type
             or "bucks" in lower_type
             or "resources" in lower_type
+            or "cosmetic" in lower_type
+            or "photobooth" in lower_type
         ):
             return False
 
